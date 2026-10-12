@@ -82,7 +82,7 @@ Save code/config, input snapshot, outputs and a short interpretation. Record one
 
 ### Week 05 — Separate causes
 
-- [ ] 60 minutes — Study and reason: Run the answer-fixture scorer and examine one unsupported claim with a valid citation.
+- [ ] 60 minutes — Study and reason: Inspect the supplied [answer fixtures](../lab/data/answer_fixtures.json) and manually assess one unsupported claim with a valid citation. These are labeled examples, not outputs from a live model.
 - [ ] 60 minutes — Implement or experiment: Add missing-context, wrong-version and unsupported-claim cases to the development suite.
 - [ ] 60 minutes — Test and explain: Assign primary and contributing causes; explain which intervention addresses each.
 
