@@ -1,0 +1,56 @@
+# Progress — advanced RAG course
+
+No prior completion is assumed. Each week has a 180-minute cap.
+
+- [ ] Week 01 — Understand RAG and define the failure
+- [ ] Week 02 — Implement honest metrics
+- [ ] Week 03 — Repair the boundary
+- [ ] Week 04 — Build a baseline
+- [ ] Week 05 — Separate causes
+- [ ] Week 06 — Independent review
+- [ ] Week 07 — Audit lexical scoring
+- [ ] Week 08 — Add real embeddings
+- [ ] Week 09 — Run ablations
+- [ ] Week 10 — Fuse rankings
+- [ ] Week 11 — Rerank candidates
+- [ ] Week 12 — Choose an architecture
+- [ ] Week 13 — Consolidation and assessment
+- [ ] Week 14 — Define chunk identity
+- [ ] Week 15 — Compare segmentation
+- [ ] Week 16 — Pack context
+- [ ] Week 17 — Integrate a generator
+- [ ] Week 18 — Verify claims
+- [ ] Week 19 — Resolve conflicts
+- [ ] Week 20 — Expand the benchmark
+- [ ] Week 21 — Define a held-out set
+- [ ] Week 22 — Quantify differences
+- [ ] Week 23 — Audit a judge
+- [ ] Week 24 — Build regression checks
+- [ ] Week 25 — Make a release decision
+- [ ] Week 26 — Consolidation and assessment
+- [ ] Week 27 — Define the dataset
+- [ ] Week 28 — Derive and implement
+- [ ] Week 29 — Evaluate by groups
+- [ ] Week 30 — Investigate calibration
+- [ ] Week 31 — Select a policy
+- [ ] Week 32 — Ship a model artifact
+- [ ] Week 33 — Representations and loss
+- [ ] Week 34 — Implement attention
+- [ ] Week 35 — Train a neural model
+- [ ] Week 36 — Prepare adaptation data
+- [ ] Week 37 — Adapt a small reranker
+- [ ] Week 38 — Decide whether to retain it
+- [ ] Week 39 — Consolidation and assessment
+- [ ] Week 40 — Enforce identity
+- [ ] Week 41 — Test cache isolation
+- [ ] Week 42 — Handle source lifecycle
+- [ ] Week 43 — Add bounded tools
+- [ ] Week 44 — Recover safely
+- [ ] Week 45 — Compare agent and workflow
+- [ ] Week 46 — Package a release
+- [ ] Week 47 — Instrument and deploy
+- [ ] Week 48 — Optimize with evidence
+- [ ] Week 49 — Run an incident drill
+- [ ] Week 50 — Pilot and audit
+- [ ] Week 51 — Final IC assessment
+- [ ] Week 52 — Consolidation and assessment
