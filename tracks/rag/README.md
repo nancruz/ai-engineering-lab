@@ -8,13 +8,19 @@ Three hours weekly, preferably three one-hour sessions. The plan contains 48 lea
 
 The eight chapters contain technical explanations, worked examples, six weekly labs each, investigation assessments and review guidance. Read only the current module. Primary references extend a topic within the study budget; they do not replace missing lesson content.
 
-## Your first week: three hours
+## Follow this reading order
 
-1. **Understand (60 minutes):** Read [What a RAG system is](lessons/00-rag-introduction.md). Explain ingestion and query-time processing in your own words, then read the [investigation brief](FIRST_INVESTIGATION.md).
-2. **Label (60 minutes):** Pick six development questions. Read the corpus and record supporting document IDs, role and time constraints before viewing retrieval outputs.
-3. **Inspect (60 minutes):** Run the faulty baseline using the [lab instructions](lab/README.md). Compare its traces with your labels and write a failure table. Stop at three hours and record the next action.
+1. Read [What a RAG system is](lessons/00-rag-introduction.md) once.
+2. Read the short [investigation scenario](FIRST_INVESTIGATION.md).
+3. Follow [Module 1 — Week 1, Session A](lessons/Module_01.md#session-a--understand-the-task-60-minutes), then Sessions B and C in order.
 
-This introductory work is part of week one, not an extra prerequisite week. Formal metrics begin in week two; filtered-baseline comparisons follow in weeks three and four.
+**Module 1 is your working guide.** It explains which files to open, what to do, where to save your work, how to check completion and where to go next. You do not need to navigate the lab README or later modules independently.
+
+If you have already finished the introduction and written your workflow explanation, continue to [Session B](lessons/Module_01.md#session-b--decide-what-good-evidence-looks-like-60-minutes). It starts with q02 in the question file and a worked evidence-labeling example.
+
+Week one ends with your expected-versus-retrieved evidence table. Metrics begin in week two. Filtering and ranking comparisons come in weeks three and four. The final incident memo is due in week six, not immediately.
+
+Each week has three one-hour sessions. Carry unfinished work forward and count reading, setup and debugging toward the budget.
 
 The retrieval lab uses Python 3.10+ standard library only. The numerical ML and attention labs use NumPy. Dense retrieval, reranking, neural adaptation and live generation are learner implementations requiring additional libraries/models; these are explicitly identified in their modules. No paid calls or cloud resources have been created for you.
 
