@@ -1,6 +1,6 @@
 # Your implementations
 
-Create `projects/knowledge-assistant/` when you start changing the RAG system. Keep the provided baseline in `tracks/rag/lab/` reproducible and record which revision your experiments began from.
+Create `projects/knowledge-assistant/` in Module 1 and grow that same project through deployment. Use the [project layout and contracts](../tracks/rag/guides/project-contract.md). Keep the provided baseline in `tracks/rag/lab/` reproducible and record which revision your experiments began from.
 
 Each project should contain its own README, dependency specification, tests and experiment records. Explain the problem, architecture, data provenance, reproduction commands, evaluation results, limitations and next decision. Use the [experiment template](../tracks/rag/EXPERIMENT_TEMPLATE.md).
 

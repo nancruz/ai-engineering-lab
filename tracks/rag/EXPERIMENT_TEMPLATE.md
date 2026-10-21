@@ -1,15 +1,15 @@
 # Experiment record
 
-Question and hypothesis:
-Baseline and proposed change:
-One changed variable:
-Dataset/corpus hash and query-family split:
-Code, model revision, prompt, index and dependency versions:
-Metrics and acceptance criteria decided beforehand:
-Sample counts and repeated-run policy:
-Per-query/family results:
-Failures and regressions:
-Latency workload and cost assumptions:
-Uncertainty and measurement limitations:
-Decision: keep / reject / insufficient evidence:
-Next falsifiable experiment:
+Use short factual entries beside a code/config change. No essay is required.
+
+- Change/task:
+- Baseline and candidate config IDs:
+- Source/index and benchmark hashes:
+- Model/prompt/artifact revisions:
+- Exact commands:
+- Result files:
+- Observed improvement, regression or unchanged behavior (with counts/example IDs):
+- Decision: keep, revert, inconclusive or continue:
+- Next unfinished step:
+
+For deployed runs, add environment, image digest, release ID, measured usage/cost, monitoring link and rollback target. Label fixtures and simulated/provider-double runs separately from real inference.

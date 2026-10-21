@@ -1,43 +1,24 @@
-# First investigation — scenario and starting point
+# First investigation — find the right evidence
 
-## What you are investigating
+You are building a fictional internal engineering knowledge assistant. Some source documents are outdated, some readers cannot access particular documents, and some questions use different wording from the source.
 
-You have inherited a fictional internal knowledge assistant. Some retrieved documents are obsolete, some questions use different wording from their sources, and some evidence is restricted to particular readers.
+Your first practical task is to compare **the evidence a question needs** with **the documents search actually returns**. You do this before blaming or changing a language model.
 
-Your first goal is to compare **which documents should support an answer** with **which documents the supplied search returns**. Over six weeks, you will learn to measure those differences and evaluate targeted repairs.
+## Continue here
 
-The starter lab performs retrieval and evaluation only. There is no live LLM, and you are not expected to build ingestion, embeddings or a complete assistant before beginning.
+After the [RAG introduction](lessons/00-rag-introduction.md), follow **[Module 1 — Week 1](lessons/Module_01.md#week-01--run-and-inspect-the-supplied-search)**. That is the single sequence of instructions. Do not treat this brief as extra homework.
 
-## Go here next
-
-If you have finished the [RAG introduction](lessons/00-rag-introduction.md), open **[Module 1 — Week 1, Session A](lessons/Module_01.md#session-a--understand-the-task-60-minutes)**.
-
-That page contains the complete ordered instructions. Follow one session at a time; do not read all six weeks before starting.
-
-If you have already explained ingestion and query-time processing and set up the repository, continue directly to **[Session B — Decide what good evidence looks like](lessons/Module_01.md#session-b--decide-what-good-evidence-looks-like-60-minutes)**.
-
-## What the first exercise uses
+You will use:
 
 | Material | Purpose |
 | --- | --- |
-| [dev.json](lab/data/dev.json) | Questions and their user context; also contains reference labels for checking your reasoning |
-| [corpus.json](lab/data/corpus.json) | Fictional source documents, including their versions and access permissions |
-| [evaluate.py](lab/evaluate.py) | Runs a supplied retriever and saves its ranked results |
-| [Module 1](lessons/Module_01.md) | Exact steps, commands, examples and completion checks |
+| [Practice viewer](tools/practice.py) | Display development questions without their reference labels |
+| [dev.json](lab/data/dev.json) | Original questions and labels for checking your attempt |
+| [corpus.json](lab/data/corpus.json) | Source text, document IDs, versions and roles |
+| [evaluate.py](lab/evaluate.py) | Save what a supplied retriever returns |
 
-Start with **q02: “What is the current production catalog timeout?”** Session B walks through finding and justifying its evidence. Then you attempt q03 yourself before expanding to other cases.
+The worked first case is **q02: “What is the current production catalog timeout?”** It uses `timeout-v2`, a current engineer-accessible source supporting 800 milliseconds. You then try q03 and other cases yourself. Exact commands and output tables are in Module 1.
 
-## What is due now versus later
+## What happens after the first exercise
 
-| Stage | What you produce |
-| --- | --- |
-| Week 1 | Short workflow explanation, evidence-label table and comparison with a saved faulty retrieval run |
-| Week 2 | Hand-calculated metrics and tests |
-| Week 3 | Comparison before and after metadata filtering |
-| Week 4 | Comparison of keyword and BM25 ranking |
-| Week 5 | Three documented failure cases with proposed checks |
-| Week 6 | Final incident memo and justified decision |
-
-The final incident memo and release recommendation are **week-six deliverables**. You do not need them to finish week one.
-
-Three hours per week is the time budget. Reading and setup count. If a session runs out of time, record the unfinished step and resume there next time. Already completed reading does not need to be repeated.
+Week 1 inspects evidence; week 2 adds metric tests; week 3 tests filtering; week 4 runs a real RAG model call; weeks 5–6 build your own CLI/API. Existing work counts. There is no final incident memo, theory questionnaire or release decision due at the start.

@@ -4,7 +4,7 @@ A hands-on learning repository for an experienced software engineer developing A
 
 ## Start here
 
-The first active track is [Applied AI Engineering through RAG](tracks/rag/README.md). Begin with [What a RAG system is](tracks/rag/lessons/00-rag-introduction.md), then follow the [first investigation](tracks/rag/FIRST_INVESTIGATION.md).
+The first active track is [Applied AI Engineering through RAG](tracks/rag/README.md). Begin with [What a RAG system is](tracks/rag/lessons/00-rag-introduction.md), then follow [Module 1, Week 1](tracks/rag/lessons/Module_01.md#week-01--run-and-inspect-the-supplied-search).
 
 This repository is the current source for lessons, exercises, code and evaluation artifacts. Notion is a navigation and planning dashboard; its older lesson pages and downloads are snapshots.
 
@@ -21,6 +21,8 @@ Keep dependencies and environments local to each project or track. Add a new tra
 
 ## Working rhythm
 
-Each week has three one-hour sessions: understand, implement or experiment, then evaluate and explain. Setup and debugging count toward the budget. Commit your experiment question, configuration, results and interpretation together. If a task takes longer, continue next week rather than adding hidden homework.
+Each week has three one-hour practical sessions with explicit actions, saved outputs and completion checks. Theory is reference material; progress comes from running, changing and debugging the application. Setup and debugging count toward the budget. Commit your experiment question, configuration, results and interpretation together. If a task takes longer, continue next week rather than adding hidden homework.
 
 The supplied starter lab runs locally without API keys. Later work adds real models and deployment. The course develops evidence of engineering ability; completing reading or toy benchmarks alone does not establish readiness for an AI engineering role.
+
+The final 12 learning weeks focus on [deploying and operating RAG on AWS](tracks/rag/guides/production-aws.md), including persistence, identity, CI/CD, observability, load testing, rollback and backup restore.

@@ -1,8 +1,143 @@
-# Module 02 — Retrieval algorithms and controlled comparisons
+# Module 02 — Improve retrieval with measured experiments
 
-Weeks 7–12 · 18 hours total · software-engineering experience assumed.
+Weeks 7–12 · 3 hours per week · one evolving knowledge-assistant project.
 
-## Technical lesson
+## Start here
+
+Bring the CLI/API from Module 1 and its development cases. The document IDs and evaluation labels remain stable throughout these comparisons.
+
+**Working result:** A configurable lexical/dense/hybrid/reranked retrieval stack selected by measured quality and latency.
+
+Read only the current week's instructions. Use the reference section when a step points to a concept; there are no written theory answers or oral assessments. Demonstrate progress through working code, saved runs, tests and short observations attached to a change.
+
+All shell commands start at the repository root. Paths beginning with `app/`, `tests/`, `artifacts/`, `data/` or `infra/` below mean files **inside** `projects/knowledge-assistant/`. You create these project files as the course progresses; the supplied baseline remains under `tracks/rag/lab/`. See the [project contract](../guides/project-contract.md) for the directory map, interfaces and commands.
+
+
+## Week 07 — Make lexical ranking inspectable
+
+Use ranking traces to improve exact-term search before adding another model.
+
+### Session A — Start and inspect (60 minutes)
+
+Open your copied BM25 implementation and the reference explanation below. Add a debug option returning tokenized query, per-document score and top matched terms. Use q02 and an exact service identifier from your project documents as the first inputs.
+
+### Session B — Build or change (60 minutes)
+
+Add tokenizer fixtures covering `catalog-v2`, `ERR_401`, punctuation and the paraphrase q17. Compare shared-word ranking and BM25 using the same eligibility policy and k=3. Preserve the original tokenization as a named baseline.
+
+### Session C — Run and verify (60 minutes)
+
+Add a term-frequency saturation test and an exact-identifier ranking test. Run the development evaluation against each tokenizer. Keep a change only if its affected cases improve without unacceptable regressions; save the per-query ranking differences.
+
+**Save:** Lexical diagnostics, tokenizer tests and a before/after run pair.
+
+**Move on when:** a ranking change can be traced to specific tokens and tested documents. If the hour ends first, keep your current work and resume the unfinished step next session.
+
+## Week 08 — Add real embeddings
+
+Add semantic search behind the same retrieval interface.
+
+### Session A — Start and inspect (60 minutes)
+
+Install Sentence Transformers in the project environment. Use `sentence-transformers/all-MiniLM-L6-v2` as the initial small English encoder; read its model card, record revision/license and actual embedding dimension. Apply its documented preprocessing and truncation. Start with exact vector search, not ANN.
+
+### Session B — Build or change (60 minutes)
+
+Implement `app/embeddings.py` and `app/dense.py`. Encode documents once, cache with content hash plus model revision, normalize vectors and rank by cosine similarity. Encode a query using the model's query interface. Apply eligibility before ranking the eligible candidates. Return the same IDs/scores contract as BM25.
+
+### Session C — Run and verify (60 minutes)
+
+Run q17 and q18 and compare with BM25. Test that a changed document/model revision invalidates its cache, normalized nonzero vectors have unit norm, and unauthorized text never enters context. Time cold embedding creation separately from warm query retrieval.
+
+**Save:** Dense adapter, vector cache manifest and actual model run records.
+
+**Move on when:** dense search uses real model vectors and can be swapped into your API without changing its response schema. If the hour ends first, keep your current work and resume the unfinished step next session.
+
+## Week 09 — Compare search on useful slices
+
+Prevent a paraphrase improvement from hiding exact-name regressions.
+
+### Session A — Start and inspect (60 minutes)
+
+Create `data/retrieval-cases.jsonl` from development examples, grouped by intent. Add a few exact identifiers and paraphrases using documents you are authorized to use. Label evidence from source text before inspecting candidate results. Keep the small fictional cases as regression fixtures.
+
+### Session B — Build or change (60 minutes)
+
+Implement `app/evaluate.py` to accept named retrieval configs and emit the run schema in the contract guide. Evaluate BM25 and dense on identical question IDs, source snapshot, permissions and k. Add `slice` and `family` to every row.
+
+### Session C — Run and verify (60 minutes)
+
+Produce a per-query CSV with recall, RR, retrieved IDs and elapsed time for both systems. Sort regressions first. Inspect at least one unchanged or worse result; if no regressions occur, retain that observation without manufacturing one.
+
+**Save:** A reusable evaluation command and slice comparison CSV.
+
+**Move on when:** the same harness evaluates both actual retrieval implementations and does not mix corpus versions. If the hour ends first, keep your current work and resume the unfinished step next session.
+
+## Week 10 — Combine lexical and dense candidates
+
+Implement hybrid retrieval without treating unrelated score scales as comparable.
+
+### Session A — Start and inspect (60 minutes)
+
+Use fixed candidate depths of 10 per retriever, or all eligible documents if fewer. Inspect overlapping and unique source IDs from the two candidate lists. Read the RRF example below just before implementation.
+
+### Session B — Build or change (60 minutes)
+
+Implement reciprocal rank fusion in `app/hybrid.py` using unique IDs, c=60 and deterministic tie breaking. Test against the supplied `rrf` reference after your implementation. Expose BM25, dense and hybrid as named configuration values.
+
+### Session C — Run and verify (60 minutes)
+
+Evaluate all three at final k=3. Save fusion contributions for q17 and one exact-name query. Check deduplication and ACL invariants. Keep candidate depth fixed during this comparison so its effect is not confused with the fusion rule.
+
+**Save:** Hybrid adapter, fusion tests and comparison results.
+
+**Move on when:** hybrid retrieval is reproducible and every final ID came from an eligible candidate list. If the hour ends first, keep your current work and resume the unfinished step next session.
+
+## Week 11 — Rerank a shortlist
+
+Measure whether a second model earns its inference cost.
+
+### Session A — Start and inspect (60 minutes)
+
+Install/load `cross-encoder/ms-marco-MiniLM-L6-v2` with its recorded revision and model-card preprocessing. Capture a fixed hybrid shortlist of up to 10 unique candidates per question. Do not change the shortlist while evaluating reranking.
+
+### Session B — Build or change (60 minutes)
+
+Implement `app/rerank.py` using query/passage pairs and the CrossEncoder interface. Keep source IDs associated with scores. Return the top three after reranking. Measure shortlist recall separately: missing evidence outside the list cannot be repaired here.
+
+### Session C — Run and verify (60 minutes)
+
+Compare quality and stage timings with and without the real reranker. Test duplicate IDs, empty candidates and timeout behavior. If using a fallback, explicitly record that it returned the original hybrid ordering rather than a reranked result.
+
+**Save:** Rerank adapter, fixed-shortlist results and timings.
+
+**Move on when:** you have a measured choice between a simpler pipeline and the extra model. If the hour ends first, keep your current work and resume the unfinished step next session.
+
+## Week 12 — Wire the chosen retriever into the API
+
+Finish with a working change rather than a written algorithm defense.
+
+### Session A — Start and inspect (60 minutes)
+
+Select the retrieval config from the stored comparisons. Save it in `configs/retrieval.json` with encoder/reranker revision, candidate limits and preprocessing. Keep the rejected configs so runs remain reproducible.
+
+### Session B — Build or change (60 minutes)
+
+Load that config in your API. Expose effective config ID in traces, not internal prompts in the public response. Add a smoke command that calls q02 and a paraphrase through the same application path used by HTTP.
+
+### Session C — Run and verify (60 minutes)
+
+Restart from a clean environment and run tests, evaluation and two real answers. Add 3–5 lines beside the config change stating the observed benefit/cost, or retain BM25 if alternatives did not justify switching.
+
+**Save:** Versioned config, integrated endpoint and clean-start smoke result.
+
+**Move on when:** a user request uses the selected retriever and the baseline can still be restored. If the hour ends first, keep your current work and resume the unfinished step next session.
+
+## Next step
+
+Use [week 13 consolidation](../ASSESSMENT.md), then [Module 3](Module_03.md).
+
+## Reference — concepts used in the experiments
 
 Keyword overlap gives every matching term equal weight. BM25 gives rare terms more influence, saturates repeated occurrences and normalizes for length. One common positive-IDF variant is IDF(t)=log(1+(N-df(t)+0.5)/(df(t)+0.5)). Its term contribution is IDF(t)·f(t,d)(k1+1)/(f(t,d)+k1(1-b+b·|d|/avgdl)). Understand each quantity before tuning k1 or b. Exact identifiers often benefit from lexical search; semantic similarity may miss a one-character difference that changes the meaning.
 
@@ -16,69 +151,11 @@ Hybrid retrieval combines complementary rankings. Reciprocal rank fusion uses su
 
 Lexical ranking is [A,B,C], dense ranking [C,A,D]. With c=60, A receives 1/61+1/62; C receives 1/63+1/61. A wins despite not ranking first in dense search. This is a ranking rule, not a calibrated estimate that A is correct. If essential evidence E is absent from both lists, fusion and reranking cannot invent it.
 
-## Six weekly labs
-
-### Week 07 — Audit lexical scoring
-
-- [ ] 60 minutes — Study and reason: Calculate one BM25 term contribution by hand using supplied document counts.
-- [ ] 60 minutes — Implement or experiment: Explain the existing reference implementation and add a term-saturation test.
-- [ ] 60 minutes — Test and explain: Compare tokenization for service IDs, punctuation and paraphrases.
-
-Save code/config, input snapshot, outputs and a short interpretation. Record one failure and the evidence used to diagnose it. If incomplete at 180 minutes, continue next week; do not add homework outside the budget.
-
-### Week 08 — Add real embeddings
-
-- [ ] 60 minutes — Study and reason: Read the selected model card and retrieval instructions; record revision and license.
-- [ ] 60 minutes — Implement or experiment: Implement a Sentence Transformers adapter and exact cosine retrieval; keep BM25 unchanged.
-- [ ] 60 minutes — Test and explain: Record embedding latency separately from query latency and inspect top-k misses.
-
-Save code/config, input snapshot, outputs and a short interpretation. Record one failure and the evidence used to diagnose it. If incomplete at 180 minutes, continue next week; do not add homework outside the budget.
-
-### Week 09 — Run ablations
-
-- [ ] 60 minutes — Study and reason: Define exact-match and paraphrase slices before running comparisons.
-- [ ] 60 minutes — Implement or experiment: Evaluate lexical versus dense on the same development set and authorized candidates.
-- [ ] 60 minutes — Test and explain: Report per-query deltas rather than a single average.
-
-Save code/config, input snapshot, outputs and a short interpretation. Record one failure and the evidence used to diagnose it. If incomplete at 180 minutes, continue next week; do not add homework outside the budget.
-
-### Week 10 — Fuse rankings
-
-- [ ] 60 minutes — Study and reason: Derive reciprocal rank fusion and implement it over unique document IDs.
-- [ ] 60 minutes — Implement or experiment: Compare lexical, dense and fused rankings using a fixed candidate budget.
-- [ ] 60 minutes — Test and explain: Explain which failures fusion addresses and where it makes ranking worse.
-
-Save code/config, input snapshot, outputs and a short interpretation. Record one failure and the evidence used to diagnose it. If incomplete at 180 minutes, continue next week; do not add homework outside the budget.
-
-### Week 11 — Rerank candidates
-
-- [ ] 60 minutes — Study and reason: Study joint query/passage scoring and its compute cost.
-- [ ] 60 minutes — Implement or experiment: Add one small cross-encoder to rerank a fixed shortlist.
-- [ ] 60 minutes — Test and explain: Measure quality and latency; inspect a miss outside the shortlist.
-
-Save code/config, input snapshot, outputs and a short interpretation. Record one failure and the evidence used to diagnose it. If incomplete at 180 minutes, continue next week; do not add homework outside the budget.
-
-### Week 12 — Choose an architecture
-
-- [ ] 60 minutes — Study and reason: Freeze preprocessing and development questions for the comparison.
-- [ ] 60 minutes — Implement or experiment: Select one retrieval configuration and document rejected alternatives.
-- [ ] 60 minutes — Test and explain: Defend the choice under a smaller latency budget and on the exact-ID slice.
-
-Save code/config, input snapshot, outputs and a short interpretation. Record one failure and the evidence used to diagnose it. If incomplete at 180 minutes, continue next week; do not add homework outside the budget.
-
-## Investigation assessment
-
-An embedding model improves paraphrases but breaks searches for error codes. A teammate proposes replacing keyword search entirely. Produce a paired comparison and a hybrid alternative, then recommend a release or a no-change decision.
-
-## Review guidance — attempt first
-
-Strong evidence includes exact-ID regressions, shortlist recall and timings. An aggregate gain does not justify breaking a critical slice. Compare against BM25, keep query preprocessing fixed and do not tune fusion on the held-out set. A larger embedding model is not automatically the right repair.
-
-## Mastery gate
-
-Pass when all rankings are reproducible, normalization is correct, fusion deduplicates items, and the architecture decision reports relevance quality plus cost/latency. The dense and reranker runs must use real models, not hand-written vectors.
 
 ## Primary references
 
 - https://sbert.net/examples/sentence_transformer/applications/retrieve_rerank/README.html
 - https://www.sbert.net/docs/quickstart.html
+
+- [Encoder model card](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
+- [Reranker model card](https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2)

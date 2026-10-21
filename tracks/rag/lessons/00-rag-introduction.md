@@ -109,15 +109,8 @@ For our example, finding A but missing B counts as finding *some* evidence. It d
 
 There is an important qualification: two relevant documents are not always both required. If A and B were duplicate copies of the same complete procedure, finding one could be sufficient. An evaluation must distinguish relevance from jointly required evidence. Our example intentionally uses complementary staging and production procedures.
 
-## Your first exercise
+## Continue with the first practical task
 
-Within this session, explain the following aloud or in a short note:
+Open [Module 1 — Week 1](Module_01.md#week-01--run-and-inspect-the-supplied-search). You will display a question, inspect its source documents and compare expected evidence with actual retrieval. No written explanation of this introduction is required.
 
-1. Which work happens when a runbook changes, and which happens when a user asks a question?
-2. If the current production document never reaches the generator, where would you investigate first?
-3. If the correct document reaches the generator but the answer omits approval, what would you inspect?
-4. Why are a high similarity score and a valid citation insufficient evidence of correctness?
-
-A good explanation separates source maintenance, search, context selection and generation. You do not need to memorize framework names or formulas yet.
-
-Next, read the short [investigation scenario](../FIRST_INVESTIGATION.md), then follow [Module 1 — Week 1, Session A](Module_01.md#session-a--understand-the-task-60-minutes). Your answers above count toward that session's explanation; do not repeat completed work. Module 1 provides the exact files, commands and completion checks for each session. The supplied lab implements retrieval and evaluation only; there is no hidden LLM call. Real generation is added in Module 3, after you can diagnose what evidence the system provides.
+Already read this page? Count it as completed. The supplied retrieval lab starts without an LLM; week four adds a real model call, weeks five and six build your API, and the final two modules deploy and operate that same application on AWS.

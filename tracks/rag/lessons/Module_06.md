@@ -1,8 +1,143 @@
-# Module 06 — Neural representations, attention and adaptation
+# Module 06 — Train, adapt and serve neural components
 
-Weeks 33–38 · 18 hours total · software-engineering experience assumed.
+Weeks 33–38 · 3 hours per week · one evolving knowledge-assistant project.
 
-## Technical lesson
+## Start here
+
+Keep the service running while doing training in separate scripts. Reuse actual retrieval errors and labeled pairs; the numeric labs are small mechanics checks.
+
+**Working result:** A real adaptation experiment and a reloadable selected inference artifact ready for deployment.
+
+Read only the current week's instructions. Use the reference section when a step points to a concept; there are no written theory answers or oral assessments. Demonstrate progress through working code, saved runs, tests and short observations attached to a change.
+
+All shell commands start at the repository root. Paths beginning with `app/`, `tests/`, `artifacts/`, `data/` or `infra/` below mean files **inside** `projects/knowledge-assistant/`. You create these project files as the course progresses; the supplied baseline remains under `tracks/rag/lab/`. See the [project contract](../guides/project-contract.md) for the directory map, interfaces and commands.
+
+
+## Week 33 — Inspect representation failures
+
+Prepare adaptation from real baseline errors instead of training without a target.
+
+### Session A — Start and inspect (60 minutes)
+
+Run the frozen encoder/reranker on the development queries. Export positive query–passage pairs and high-scoring wrong passages. Read the representation/loss reference below while inspecting the vector norms and truncation from an actual pair.
+
+### Session B — Build or change (60 minutes)
+
+Create `training/pairs.jsonl` with query ID, source family, passage, relevance and provenance. Manually check hard negatives for alternative valid answers; retain multiple positives instead of forcing one gold source.
+
+### Session C — Run and verify (60 minutes)
+
+Add validation rejecting positive/negative label conflicts for the same pair and split by query/source family. Save the frozen-model performance and actual model revision as the adaptation baseline.
+
+**Save:** Inspected training pairs, negative audit and frozen baseline.
+
+**Move on when:** training negatives are not known alternate answers and validation/test groups remain separate. If the hour ends first, keep your current work and resume the unfinished step next session.
+
+## Week 34 — Implement attention and test its behavior
+
+Use executable tensor checks to understand one core neural operation.
+
+### Session A — Start and inspect (60 minutes)
+
+Create `training/attention.py` using NumPy. Implement scaled dot-product attention with stable softmax. Use small Q,K,V matrices whose shapes are visible in the test. Read the attention formula below as implementation guidance.
+
+### Session B — Build or change (60 minutes)
+
+Add a causal mask before softmax. Test that forbidden positions receive zero weight, permitted row weights sum to one and changing a future value cannot affect an earlier causal output. Handle fully masked rows explicitly rather than returning NaNs.
+
+### Session C — Run and verify (60 minutes)
+
+Compare with the small reference after your attempt. Run an unmasked version to demonstrate the future-information test failing, then restore the mask. Keep this toy exercise separate from claims about trained transformer performance.
+
+**Save:** Attention implementation and behavioral tests.
+
+**Move on when:** the tests detect mask placement/normalization mistakes without a written matrix-shape quiz. If the hour ends first, keep your current work and resume the unfinished step next session.
+
+## Week 35 — Debug a neural training loop
+
+Build confidence that gradients actually update a model.
+
+### Session A — Start and inspect (60 minutes)
+
+Install PyTorch. Implement a tiny two-layer classifier on a small numeric fixture. Set seeds, call zero_grad, compute loss, backpropagate and step. Read the official training-loop reference only as needed for these operations.
+
+### Session B — Build or change (60 minutes)
+
+Overfit one tiny batch deliberately. Log loss and parameter changes. Add a smoke test that parameters change after a step. Inject a detached loss or a missing gradient reset, observe the symptom and repair it.
+
+### Session C — Run and verify (60 minutes)
+
+Save train/validation curves on a split fixture and reload the checkpoint for inference with eval mode and disabled gradient recording. Record the distinction between this mechanics exercise and the relevance-model adaptation that follows as a note beside the run.
+
+**Save:** Working training loop, reload test and before/after failure trace.
+
+**Move on when:** a seeded neural model trains, the injected defect is observable and inference reload works. If the hour ends first, keep your current work and resume the unfinished step next session.
+
+## Week 36 — Build a bounded fine-tuning job
+
+Prepare a small reranker adaptation that fits your hardware budget.
+
+### Session A — Start and inspect (60 minutes)
+
+Use the small cross-encoder already evaluated in Module 2. Pin its revision and set a wall-time/compute budget. Install the compatible trainer dependencies. Start with a tiny pair batch to confirm the training path before requesting any accelerator time.
+
+### Session B — Build or change (60 minutes)
+
+Create `training/train_reranker.py` using the documented CrossEncoder training interface and your relevance-pair dataset. Freeze split identities. Save initialization, labels, hyperparameters, seed and validation scores. Provide a max-step argument for short smoke runs.
+
+### Session C — Run and verify (60 minutes)
+
+Run a few steps, save a checkpoint and reload it to score known pairs. Confirm changed weights and unchanged pair/group membership. If hardware cannot complete a short real run, reduce data/sequence length or explicitly use a budgeted training environment; do not label a frozen model fine-tuned.
+
+**Save:** Training entrypoint, bounded smoke checkpoint and metadata.
+
+**Move on when:** a real training update survives checkpoint reload with a valid split. If the hour ends first, keep your current work and resume the unfinished step next session.
+
+## Week 37 — Compare adaptation with the frozen model
+
+Evaluate whether training fixes the diagnosed failures.
+
+### Session A — Start and inspect (60 minutes)
+
+Complete one bounded training run. Select the checkpoint using validation only. Retain the frozen baseline, identical candidate lists and its scores.
+
+### Session B — Build or change (60 minutes)
+
+Rerank those lists with the adapted checkpoint. Compare relevance metrics, exact-ID slices, paraphrases and latency against the frozen model. Save per-query regressions and investigate ambiguous or false-negative labels without changing final test results.
+
+### Session C — Run and verify (60 minutes)
+
+Try at most one justified adjustment within the session budget and rerun validation. Keep configuration histories rather than overwriting the previous result. If adaptation worsens results, retain that as a completed experiment.
+
+**Save:** Real frozen-versus-adapted run pair and checkpoint-selection record.
+
+**Move on when:** the comparison isolates adaptation rather than changing retrieval candidates simultaneously. If the hour ends first, keep your current work and resume the unfinished step next session.
+
+## Week 38 — Prepare the selected model for serving
+
+Finish ML experimentation before starting production deployment.
+
+### Session A — Start and inspect (60 minutes)
+
+Freeze the selected configuration and evaluate its untouched model-test families once. Retain the frozen model when no convincing benefit exists. Record the actual sample/family counts and limitations.
+
+### Session B — Build or change (60 minutes)
+
+Package the selected model with artifact hash, tokenizer revision, dependency versions and inference settings. Load it from the application config and measure cold-start memory/time. Do not load large models independently in an unbounded number of API workers.
+
+### Session C — Run and verify (60 minutes)
+
+Restart your API in a clean process, run regression evaluation and verify artifact mismatch fails readiness. Save a release manifest using the selected gate/retriever/reranker; this is the input to production work.
+
+**Save:** Serving model manifest, cold-start results and local release candidate.
+
+**Move on when:** the service runs with explicitly versioned models and previous known-good artifacts remain recoverable. If the hour ends first, keep your current work and resume the unfinished step next session.
+
+## Next step
+
+Use [week 39 consolidation](../ASSESSMENT.md), then start the production sequence in [Module 7](Module_07.md).
+
+## Reference — concepts used in the experiments
 
 Dense retrieval learns a representation in which relevant query/document pairs should be close. A contrastive objective compares a positive pair with negatives: -log(exp(sim(q,d+)/τ)/Σj exp(sim(q,dj)/τ)). Temperature changes the concentration of the distribution. In-batch negatives are convenient, but a supposedly negative passage may also answer the question. False negatives corrupt the training signal.
 
@@ -18,70 +153,11 @@ Fine-tuning retrieval representation does not refresh changing policies in model
 
 A batch has query “How do I restore the previous release?” with one rollback runbook as positive and a second equally valid rollback guide as a negative. A contrastive loss pushes an actually relevant passage away. Inspect hard negatives manually and use multi-positive labels or remove ambiguous negatives before trusting a lower loss.
 
-## Six weekly labs
-
-### Week 33 — Representations and loss
-
-- [ ] 60 minutes — Study and reason: Derive cosine similarity and the contrastive objective on a two-pair example.
-- [ ] 60 minutes — Implement or experiment: Run a frozen encoder and inspect norms, similarities and truncation.
-- [ ] 60 minutes — Test and explain: Find one false-negative candidate and explain its effect on learning.
-
-Save code/config, input snapshot, outputs and a short interpretation. Record one failure and the evidence used to diagnose it. If incomplete at 180 minutes, continue next week; do not add homework outside the budget.
-
-### Week 34 — Implement attention
-
-- [ ] 60 minutes — Study and reason: Calculate matrix shapes for Q,K,V and a small mask.
-- [ ] 60 minutes — Implement or experiment: Run the supplied NumPy attention lab and write a masked version independently.
-- [ ] 60 minutes — Test and explain: Test row sums, causal masking and a numerical-stability edge case.
-
-Save code/config, input snapshot, outputs and a short interpretation. Record one failure and the evidence used to diagnose it. If incomplete at 180 minutes, continue next week; do not add homework outside the budget.
-
-### Week 35 — Train a neural model
-
-- [ ] 60 minutes — Study and reason: Read the training loop and autograd concepts in PyTorch documentation.
-- [ ] 60 minutes — Implement or experiment: Implement a small two-layer classifier and deliberately overfit a tiny batch.
-- [ ] 60 minutes — Test and explain: Diagnose one injected no-gradient or missing-zero-grad failure.
-
-Save code/config, input snapshot, outputs and a short interpretation. Record one failure and the evidence used to diagnose it. If incomplete at 180 minutes, continue next week; do not add homework outside the budget.
-
-### Week 36 — Prepare adaptation data
-
-- [ ] 60 minutes — Study and reason: Collect positive pairs and inspect baseline hard negatives.
-- [ ] 60 minutes — Implement or experiment: Split by query/source family, preserving multi-positive evidence.
-- [ ] 60 minutes — Test and explain: Audit labels and compare the frozen-model baseline.
-
-Save code/config, input snapshot, outputs and a short interpretation. Record one failure and the evidence used to diagnose it. If incomplete at 180 minutes, continue next week; do not add homework outside the budget.
-
-### Week 37 — Adapt a small reranker
-
-- [ ] 60 minutes — Study and reason: Choose a small compatible model and set a compute/time limit.
-- [ ] 60 minutes — Implement or experiment: Fine-tune on a bounded subset and save a checkpoint with data/config metadata.
-- [ ] 60 minutes — Test and explain: Compare validation relevance and latency against the frozen model.
-
-Save code/config, input snapshot, outputs and a short interpretation. Record one failure and the evidence used to diagnose it. If incomplete at 180 minutes, continue next week; do not add homework outside the budget.
-
-### Week 38 — Decide whether to retain it
-
-- [ ] 60 minutes — Study and reason: Freeze adaptation choices and run a held-out comparison.
-- [ ] 60 minutes — Implement or experiment: Reload the checkpoint in a fresh process and inspect regressions.
-- [ ] 60 minutes — Test and explain: Keep or reject the adaptation using measured benefit, not completion pride.
-
-Save code/config, input snapshot, outputs and a short interpretation. Record one failure and the evidence used to diagnose it. If incomplete at 180 minutes, continue next week; do not add homework outside the budget.
-
-## Investigation assessment
-
-Training loss improves every epoch, but held-out retrieval gets worse. Investigate label quality, false negatives, split leakage, learning rate and checkpoint selection before increasing model size.
-
-## Review guidance — attempt first
-
-A tiny-batch overfit test checks whether the training path works; it does not establish generalization. Separate representation limitations from label problems. If adaptation regresses, retaining the frozen model is a legitimate result when supported by a sound experiment.
-
-## Mastery gate
-
-Pass when you explain tensor shapes and gradients, demonstrate a working neural training loop, identify false negatives, and complete a real frozen-versus-adapted comparison. No credit for merely calling a hosted inference endpoint.
 
 ## Primary references
 
 - https://docs.pytorch.org/tutorials/beginner/basics/
 - https://huggingface.co/learn/llm-course/en/chapter1/1
 - https://sbert.net/examples/sentence_transformer/applications/retrieve_rerank/README.html
+
+- [CrossEncoder training components and examples](https://www.sbert.net/docs/cross_encoder/training_overview.html)

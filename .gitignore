@@ -9,3 +9,15 @@ venv/
 tracks/rag/lab/faulty.json
 tracks/rag/lab/keyword.json
 tracks/rag/lab/bm25.json
+
+# Learner runtime, secrets and generated heavyweight artifacts
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.example.tfvars
+*.tfplan
+projects/knowledge-assistant/artifacts/
+projects/knowledge-assistant/data/private/
+projects/knowledge-assistant/.cache/
+projects/knowledge-assistant/models/

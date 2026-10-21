@@ -1,33 +1,41 @@
-# Runnable investigation lab
+# Supplied runnable examples
 
-From this folder, using Python 3.10+:
+Follow [Module 1](../lessons/Module_01.md) for the ordered exercises. This page is a command reference, not an extra sequence to complete first. All commands below start at the repository root unless indicated otherwise.
+
+## First evidence investigation
 
 ```bash
-python3 -m unittest -v test_retrieval
-python3 evaluate.py --mode faulty --out faulty.json
-python3 evaluate.py --mode keyword --out keyword.json
-python3 evaluate.py --mode bm25 --out bm25.json
-python3 compare_runs.py keyword.json bm25.json
+python3 tracks/rag/tools/practice.py
+python3 tracks/rag/tools/practice.py --check
+python3 -m unittest discover -s tracks/rag/lab -p 'test*.py' -v
 ```
 
-On Windows substitute `py -3` if needed. No third-party packages are needed for these commands. The faulty mode intentionally ignores authorization and current-version filtering, solely against the supplied fictional local data. Do not deploy it or connect confidential data to it.
+Display questions without reference labels first; use `--check` after your attempt. The viewer does not access the held-out question file.
 
-For the numerical labs, install NumPy in an isolated environment using `python3 -m pip install numpy`, record the resolved version, then run `python3 ../reference-solutions/math_labs.py`. This lab trains a real small logistic model on generated numeric data and checks attention mechanics; it is not the final evidence-gate dataset or a trained transformer.
+## Retrieval runs
 
-Reference retrieval is provided so your time goes into diagnosis and experiments. Implement your own metric, gradient or attention functions before checking the reference in modules that assess implementation.
+```bash
+python3 tracks/rag/lab/evaluate.py --mode faulty --out projects/knowledge-assistant/experiments/module-01/faulty.json
+python3 tracks/rag/lab/evaluate.py --mode keyword --out projects/knowledge-assistant/experiments/module-01/keyword.json
+python3 tracks/rag/lab/evaluate.py --mode bm25 --out projects/knowledge-assistant/experiments/module-01/bm25.json
+```
 
-## Extending the system
+Create the output directory first. These commands use the standard library and make no model calls. Faulty mode deliberately bypasses access/freshness rules on fictional local data. Filtered keyword isolates the eligibility repair; BM25 then changes ranking. They are not a deployed application.
 
-A retriever accepts a query context and returns ranked items with stable source IDs and scores. An embedding adapter must use a real model and its documented query/document preprocessing. A generator adapter returns structured claims, citations and optional abstention; preserve the exact context and model/prompt IDs. A model gate may only use serving-available features. Tool execution must enforce principal, approval and idempotency in code.
+## First real model — week four
 
-There is deliberately no fake LLM behind the reference. `answer_fixtures.json` contains human-authored failure examples with labels for learning. Add real generated outputs and human review in Module 3 before measuring generation quality. Dense models, PyTorch training, model adaptation, cloud deployment and the completed capstone are implementation assignments, not falsely pre-verified integrations.
+Follow [model setup](../guides/first-model.md), then:
 
-## Data provenance and evaluation
+```bash
+python3 tracks/rag/lab/answer.py --question-id q02 --model llama3.2:3b --out projects/knowledge-assistant/experiments/module-01/answer-q02.json
+```
 
-All 27 documents and 18 questions are original fictional fixtures. Four question families are in `heldout.json`; the remaining 14 questions are development cases. Do not inspect the held-out questions during tuning. It is a procedural holdout, not a hidden secure exam. All later production-readiness work requires a broader independently labeled corpus and benchmark.
+This calls a real local Ollama model and saves exact context plus raw provider response. Output/citation validation does not check factual entailment. The script's fixture role is not authenticated. It is a first learning loop, not your completed service.
 
-`relevant` means supporting document IDs under the question's role and temporal policy. Empty relevance means no authorized answer in this corpus. It does not mean search should return zero lexical matches. The evaluator deliberately excludes those questions from recall and does not manufacture an answer-quality score.
+## Later references
 
-## Reading the metrics
+`compare_runs.py` compares compatible retrieval runs with a grouped exploratory bootstrap. Use it during Module 4 after learning what its interval means. `../reference-solutions/math_labs.py` contains numerical mechanics examples for Modules 5–6; attempt your own implementations before consulting it.
 
-Each row reports `recall`, `hit`, `rr` (reciprocal rank) and `complete` (all labeled relevant IDs found). The summary averages answerable rows and reports `mrr` for mean reciprocal rank. `complete` is not a universal evidence-sufficiency score; redundant sources need not all be retrieved. See [Module 1](../lessons/Module_01.md) for worked examples.
+The fictional corpus has 27 documents, 14 development questions and four held-out question families. Empty relevant sets represent no authorized supporting evidence; recall is undefined for these rows. Per-query `rr` becomes aggregate `mrr`. `complete` means all labeled relevant IDs were retrieved, not a universal sufficiency score.
+
+`answer_fixtures.json` contains manually written labeled failure examples; never report them as generated model outputs. Real documentation, independent labels and application/cloud implementations are introduced explicitly in later modules.
