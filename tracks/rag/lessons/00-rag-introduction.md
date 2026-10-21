@@ -120,4 +120,4 @@ Within this session, explain the following aloud or in a short note:
 
 A good explanation separates source maintenance, search, context selection and generation. You do not need to memorize framework names or formulas yet.
 
-Continue to the [first investigation](../FIRST_INVESTIGATION.md). The supplied lab implements retrieval and evaluation only; there is no hidden LLM call. Real generation is added in Module 3, after you can diagnose what evidence the system provides.
+Next, read the short [investigation scenario](../FIRST_INVESTIGATION.md), then follow [Module 1 — Week 1, Session A](Module_01.md#session-a--understand-the-task-60-minutes). Your answers above count toward that session's explanation; do not repeat completed work. Module 1 provides the exact files, commands and completion checks for each session. The supplied lab implements retrieval and evaluation only; there is no hidden LLM call. Real generation is added in Module 3, after you can diagnose what evidence the system provides.
