@@ -1,44 +1,43 @@
-# First investigation — correct-looking answers from the wrong evidence
+# First investigation — scenario and starting point
 
-## Assignment
+## What you are investigating
 
-You have inherited an internal engineering assistant. Users report obsolete policy answers, missed paraphrases and a restricted operational value appearing for the wrong reader. The team suggests using a larger model. Your task is to determine what evidence supports that proposal and implement a more targeted first repair.
+You have inherited a fictional internal knowledge assistant. Some retrieved documents are obsolete, some questions use different wording from their sources, and some evidence is restricted to particular readers.
 
-This is your first six-week module, not a one-evening task. Each week's work fits a three-hour planning budget. You already know how to write software: the new learning is measurement, evidence authority and model-system failure analysis.
+Your first goal is to compare **which documents should support an answer** with **which documents the supplied search returns**. Over six weeks, you will learn to measure those differences and evaluate targeted repairs.
 
-## What is supplied
+The starter lab performs retrieval and evaluation only. There is no live LLM, and you are not expected to build ingestion, embeddings or a complete assistant before beginning.
 
-- A fictional corpus of 27 current, archived, restricted and adversarial documents.
-- Fourteen development questions, including a multi-document question and no-evidence cases.
-- Four held-out intent families for a later frozen assessment.
-- A faulty keyword retriever, an authorized/current keyword baseline and a BM25 reference.
-- Per-query traces with Recall@k, Hit@k, RR@k and complete labeled-set coverage; aggregate MRR@k across answerable questions.
-- Five manually labeled answer-failure fixtures. They are not model-generated results.
+## Go here next
 
-## Your first three hours
+If you have finished the [RAG introduction](lessons/00-rag-introduction.md), open **[Module 1 — Week 1, Session A](lessons/Module_01.md#session-a--understand-the-task-60-minutes)**.
 
-**Hour 1:** Read [What a RAG system is](lessons/00-rag-introduction.md), then this brief. Explain the two workflows and where evidence can be lost.
+That page contains the complete ordered instructions. Follow one session at a time; do not read all six weeks before starting.
 
-**Hour 2:** Pick six development questions and label the evidence you would accept, including role and current/historical intent. Write these labels before running retrieval or inspecting its traces.
+If you have already explained ingestion and query-time processing and set up the repository, continue directly to **[Session B — Decide what good evidence looks like](lessons/Module_01.md#session-b--decide-what-good-evidence-looks-like-60-minutes)**.
 
-**Hour 3:** Run the faulty baseline and compare its traces with your labels. Write a short failure table and your next action. Stop at three hours. Metrics are introduced in week two; filtered keyword and BM25 comparisons follow in weeks three and four.
+## What the first exercise uses
 
-Commands are in [lab/README.md](lab/README.md). You can use the reference code directly this week; rebuilding CLI scaffolding is not a learning objective.
+| Material | Purpose |
+| --- | --- |
+| [dev.json](lab/data/dev.json) | Questions and their user context; also contains reference labels for checking your reasoning |
+| [corpus.json](lab/data/corpus.json) | Fictional source documents, including their versions and access permissions |
+| [evaluate.py](lab/evaluate.py) | Runs a supplied retriever and saves its ranked results |
+| [Module 1](lessons/Module_01.md) | Exact steps, commands, examples and completion checks |
 
-## Required artifact
+Start with **q02: “What is the current production catalog timeout?”** Session B walks through finding and justifying its evidence. Then you attempt q03 yourself before expanding to other cases.
 
-A short incident memo: symptom; affected question IDs; expected evidence; retrieved evidence; primary/contributing failure stages; proposed experiment; before/after counts; limitation; release or no-go decision. Include saved run files and a reproducible command.
+## What is due now versus later
 
-## Questions you must answer
+| Stage | What you produce |
+| --- | --- |
+| Week 1 | Short workflow explanation, evidence-label table and comparison with a saved faulty retrieval run |
+| Week 2 | Hand-calculated metrics and tests |
+| Week 3 | Comparison before and after metadata filtering |
+| Week 4 | Comparison of keyword and BM25 ranking |
+| Week 5 | Three documented failure cases with proposed checks |
+| Week 6 | Final incident memo and justified decision |
 
-1. Why can a valid citation still support a wrong answer?
-2. When can Hit@3 equal one while the context is insufficient?
-3. Why should no-evidence questions not get an arbitrary recall of zero?
-4. Does removing stale evidence solve paraphrase misses?
-5. What has this offline lab established about an actual LLM? What has it not established?
+The final incident memo and release recommendation are **week-six deliverables**. You do not need them to finish week one.
 
-## Review key — attempt first
-
-A citation may be stale, unauthorized, partially relevant or attached to an unsupported claim. Multi-evidence questions need complete required evidence, not one hit. Empty-gold recall is undefined and belongs in a separate abstention evaluation. Metadata and representation failures need different repairs. This reference establishes retrieval and metric behaviour on a fictional corpus, not real generation quality or enterprise performance.
-
-A strong submission may reject a larger model as premature, but only after examining where evidence was lost. A prompt change is not a substitute for authorization enforcement.
+Three hours per week is the time budget. Reading and setup count. If a session runs out of time, record the unfinished step and resume there next time. Already completed reading does not need to be repeated.
