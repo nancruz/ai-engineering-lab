@@ -1,0 +1,176 @@
+{
+  "source_content_unchanged": true,
+  "pages": [
+    {
+      "source": "tracks/rag/ASSESSMENT.md",
+      "page": "resources/assessment.html",
+      "sha256": "d3419c54312878568062d8317b90369083b138ff248309f097140fdca29a520a",
+      "rendered_sha256": "4936f7e06f2a2828531108b55c4bbae7854a8f4ab9ec855d3cee81e4582d3885"
+    },
+    {
+      "source": "tracks/rag/CHANGELOG.md",
+      "page": "resources/changelog.html",
+      "sha256": "124742be0b9d74ddb59028b9283b186f627cae47f052e21f2b59673f124e5e93",
+      "rendered_sha256": "13019edd40526178b4bdef9caef3c7438b7d155b652c90e60d7b7dbe09a38d1d"
+    },
+    {
+      "source": "tracks/rag/ENVIRONMENT.md",
+      "page": "resources/environment.html",
+      "sha256": "751d96002444de52fdc5350471ef77b12492f650158b13b91ccc2bdef038a2da",
+      "rendered_sha256": "5999a9b5f6e7e41c3edfb069c711c313ab27a7f0cd6ff3161a60a0147cafabfd"
+    },
+    {
+      "source": "tracks/rag/EXPERIMENT_TEMPLATE.md",
+      "page": "resources/experiment-template.html",
+      "sha256": "cc7431d09f167e2f533c3cb3fcb6cab18dcac5d94c4fabf660e38af9be0b8edb",
+      "rendered_sha256": "037161f06ff1ff5011f2949afefe2849d3b6b0dec9f5501ae83b9622a1d3364a"
+    },
+    {
+      "source": "tracks/rag/FIRST_INVESTIGATION.md",
+      "page": "resources/first-investigation.html",
+      "sha256": "02d0158ad0aec7b441cbca28305bd0d7c985933790196c41dbf4ff339c5608da",
+      "rendered_sha256": "82a70f68d671761a60dbe1c4bb5589ff4c6c46fb696e038b6d3754c138a68acb"
+    },
+    {
+      "source": "tracks/rag/PROGRESS.md",
+      "page": "resources/progress.html",
+      "sha256": "c15d5a99c99b0ddcf4cde1abf2aa0c319971315dddc8a14a9fa7ef9847322e48",
+      "rendered_sha256": "569f6025e20ce325eb0141c263065210125c5ef7bface9ada6558ad100a78924"
+    },
+    {
+      "source": "tracks/rag/README.md",
+      "page": "course.html",
+      "sha256": "a16224491d5ccd00a4269df3aa19676fff675805c10c7513d2043836e038fb75",
+      "rendered_sha256": "806b5bf7296876d056586b9437467bd25ce3e080366814d9e25135824d6069a7"
+    },
+    {
+      "source": "tracks/rag/guides/first-model.md",
+      "page": "guides/first-model.html",
+      "sha256": "2cf8281ff3fdcdb4ebf569d8ec79194614e36684113fa37397d83581016bab70",
+      "rendered_sha256": "d4d0ed61368e6021460be415e0a289634c82683d2a36eb653829fbc307e12334"
+    },
+    {
+      "source": "tracks/rag/guides/production-aws.md",
+      "page": "guides/production-aws.html",
+      "sha256": "44c66c79ed9f8a93d0faa5d44bb9ef6e504905c5404f720d0cc4f02817e17f8d",
+      "rendered_sha256": "711f16be89fb7c9569493efd50ac9528d4e07e04e77984ce39e070db98364e70"
+    },
+    {
+      "source": "tracks/rag/guides/project-contract.md",
+      "page": "guides/project-contract.html",
+      "sha256": "c5d334ae5e1e345cc6d36ff256672891b2c1e422416d910c248f411b46519c6d",
+      "rendered_sha256": "8ae79a1c450924a1269edcb9348cfc7adc61ff4ebcfd2d3e263ff049b0f2e63b"
+    },
+    {
+      "source": "tracks/rag/lab/README.md",
+      "page": "resources/lab.html",
+      "sha256": "75d2abb47564df61595fb8ffb5d15eeba96416a3498782315f68fda66a39471e",
+      "rendered_sha256": "82ac94798b2f66410d7f2a832c7882b28f3569d27773e5b374e35a4b0b195a46"
+    },
+    {
+      "source": "tracks/rag/lessons/00-rag-introduction.md",
+      "page": "lessons/introduction.html",
+      "sha256": "57a415e27b266ca3c4a7e31dfe04dcf3348114e82e01f28aadea1af07526971a",
+      "rendered_sha256": "df086bd9015c39d1e351f7d3fbcc012bc3cb7a9137022e373ab79ec7426c451d"
+    },
+    {
+      "source": "tracks/rag/lessons/Module_01.md",
+      "page": "lessons/module-01.html",
+      "sha256": "a5f6502c7f165a57e7d225f1f580fb57bcf2f2f5fe9ff82fd36e0d93d22740fe",
+      "rendered_sha256": "aa1fc7e10f34868e4425699b5ec9b666246f6fc78a000a5c02b7c66247894ac2"
+    },
+    {
+      "source": "tracks/rag/lessons/Module_02.md",
+      "page": "lessons/module-02.html",
+      "sha256": "83bb9772186a7b25d9dad2331c818bff89b8c76e31ab11c91d28a1faa430afde",
+      "rendered_sha256": "19118442a230289ce1d6e35d81ed75cbdfd50647b474cd02688b022ecd83e7e2"
+    },
+    {
+      "source": "tracks/rag/lessons/Module_03.md",
+      "page": "lessons/module-03.html",
+      "sha256": "3f3f632c95e3a89a9576322ee47599a707111376c8fb7933a2f85c54f6e27421",
+      "rendered_sha256": "f187e36f2d99c20d059b1d7cfdf5cffe55663845ec91286d68f597ee7337c5ed"
+    },
+    {
+      "source": "tracks/rag/lessons/Module_04.md",
+      "page": "lessons/module-04.html",
+      "sha256": "1d7599d98102aaa8934f0c0980340f51707bf9e58219d499702de0861d3ef6e7",
+      "rendered_sha256": "5b855677863473db924071edda82f069203481650b7e1b21621323fe0d6910d7"
+    },
+    {
+      "source": "tracks/rag/lessons/Module_05.md",
+      "page": "lessons/module-05.html",
+      "sha256": "ededa13103182dbd21013873bb74dd9bcb7dc26b464bfa667a7a821fc84673f0",
+      "rendered_sha256": "86e74256eefc66f1c398af5a2fdf624834c4a6e2924b89ce665758c02bd2e0bc"
+    },
+    {
+      "source": "tracks/rag/lessons/Module_06.md",
+      "page": "lessons/module-06.html",
+      "sha256": "35d78c25e4936603080595dde0d90a9b6dab194be9813501f231d5af3047884e",
+      "rendered_sha256": "da809aa8ca2d8f387f534f047e4041c65a4f27aa405a67626526662865b63d4a"
+    },
+    {
+      "source": "tracks/rag/lessons/Module_07.md",
+      "page": "lessons/module-07.html",
+      "sha256": "461e7eafa1daad52680716e78a1d5aae49b65cf1f61971c994bfa0b348887330",
+      "rendered_sha256": "15595944f0b55baf607c5383a27724df46121ee84f47ee5d4788c40f791f89bd"
+    },
+    {
+      "source": "tracks/rag/lessons/Module_08.md",
+      "page": "lessons/module-08.html",
+      "sha256": "82a548e68cb9dee1b65b062e88cfce79f90d4ccb2a66faf5d5a168159ab7422f",
+      "rendered_sha256": "253ea64b7608e99b0ac5d56ce1877ea8205b0da4329e2935c9c67f2aad0e970c"
+    },
+    {
+      "source": "tracks/rag/reference-solutions/README.md",
+      "page": "resources/reference-solutions.html",
+      "sha256": "acbe58d6a58ad8e569172eb3ddd556019284c0fc7bdabdb5b7372f4debf9d6ad",
+      "rendered_sha256": "450a7f0f45d588a4c39de23c8f3d8f25900627198272e576d99fea67e40565a1"
+    },
+    {
+      "source": "README.md",
+      "page": "resources/repository.html",
+      "sha256": "80af89229de7a14b90fca5a8cb4db926a08fbdf306a9b6392e3ff8e33e86e13b",
+      "rendered_sha256": "d16bf05c9132d8eff18fe58c5f38fd8a2f55520a880558de2326d57efba3efbb"
+    },
+    {
+      "source": "foundations/README.md",
+      "page": "resources/foundations.html",
+      "sha256": "40eba602eb35feda8fc4e0b8a5bfddf002a3a457c56be1348c8242838b73740d",
+      "rendered_sha256": "2544cb58566c76d426fa8e3239e2312d395aaa33560762b8f02e11433961a68b"
+    },
+    {
+      "source": "projects/README.md",
+      "page": "resources/projects.html",
+      "sha256": "7fdaf1519bead186572640e5145cf9516434836c0ee1d96ef0c398d68b7eb638",
+      "rendered_sha256": "dd73beeb0f023d0b8d09cb407884e89ffd26042e63b2f5f1fc58c5445386128f"
+    }
+  ],
+  "sessions": 144,
+  "source_hashes": {
+    "tracks/rag/ASSESSMENT.md": "d3419c54312878568062d8317b90369083b138ff248309f097140fdca29a520a",
+    "tracks/rag/CHANGELOG.md": "124742be0b9d74ddb59028b9283b186f627cae47f052e21f2b59673f124e5e93",
+    "tracks/rag/ENVIRONMENT.md": "751d96002444de52fdc5350471ef77b12492f650158b13b91ccc2bdef038a2da",
+    "tracks/rag/EXPERIMENT_TEMPLATE.md": "cc7431d09f167e2f533c3cb3fcb6cab18dcac5d94c4fabf660e38af9be0b8edb",
+    "tracks/rag/FIRST_INVESTIGATION.md": "02d0158ad0aec7b441cbca28305bd0d7c985933790196c41dbf4ff339c5608da",
+    "tracks/rag/PROGRESS.md": "c15d5a99c99b0ddcf4cde1abf2aa0c319971315dddc8a14a9fa7ef9847322e48",
+    "tracks/rag/README.md": "a16224491d5ccd00a4269df3aa19676fff675805c10c7513d2043836e038fb75",
+    "tracks/rag/guides/first-model.md": "2cf8281ff3fdcdb4ebf569d8ec79194614e36684113fa37397d83581016bab70",
+    "tracks/rag/guides/production-aws.md": "44c66c79ed9f8a93d0faa5d44bb9ef6e504905c5404f720d0cc4f02817e17f8d",
+    "tracks/rag/guides/project-contract.md": "c5d334ae5e1e345cc6d36ff256672891b2c1e422416d910c248f411b46519c6d",
+    "tracks/rag/lab/README.md": "75d2abb47564df61595fb8ffb5d15eeba96416a3498782315f68fda66a39471e",
+    "tracks/rag/lessons/00-rag-introduction.md": "57a415e27b266ca3c4a7e31dfe04dcf3348114e82e01f28aadea1af07526971a",
+    "tracks/rag/lessons/Module_01.md": "a5f6502c7f165a57e7d225f1f580fb57bcf2f2f5fe9ff82fd36e0d93d22740fe",
+    "tracks/rag/lessons/Module_02.md": "83bb9772186a7b25d9dad2331c818bff89b8c76e31ab11c91d28a1faa430afde",
+    "tracks/rag/lessons/Module_03.md": "3f3f632c95e3a89a9576322ee47599a707111376c8fb7933a2f85c54f6e27421",
+    "tracks/rag/lessons/Module_04.md": "1d7599d98102aaa8934f0c0980340f51707bf9e58219d499702de0861d3ef6e7",
+    "tracks/rag/lessons/Module_05.md": "ededa13103182dbd21013873bb74dd9bcb7dc26b464bfa667a7a821fc84673f0",
+    "tracks/rag/lessons/Module_06.md": "35d78c25e4936603080595dde0d90a9b6dab194be9813501f231d5af3047884e",
+    "tracks/rag/lessons/Module_07.md": "461e7eafa1daad52680716e78a1d5aae49b65cf1f61971c994bfa0b348887330",
+    "tracks/rag/lessons/Module_08.md": "82a548e68cb9dee1b65b062e88cfce79f90d4ccb2a66faf5d5a168159ab7422f",
+    "tracks/rag/reference-solutions/README.md": "acbe58d6a58ad8e569172eb3ddd556019284c0fc7bdabdb5b7372f4debf9d6ad",
+    "README.md": "80af89229de7a14b90fca5a8cb4db926a08fbdf306a9b6392e3ff8e33e86e13b",
+    "foundations/README.md": "40eba602eb35feda8fc4e0b8a5bfddf002a3a457c56be1348c8242838b73740d",
+    "projects/README.md": "7fdaf1519bead186572640e5145cf9516434836c0ee1d96ef0c398d68b7eb638"
+  }
+}

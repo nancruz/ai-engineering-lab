@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="description" content="A practical, visual path from RAG evidence to production deployment."><title>Module 01 — From source documents to a running local RAG service · AI Engineering Lab</title><link rel="stylesheet" href="../assets/style.css"><script defer src="../assets/course-data.js"></script><script defer src="../assets/learning.js"></script><script defer src="../assets/app.js"></script></head>
+<body data-page="lessons/module-01.html" data-module="1"><a class="skip-link" href="#main">Skip to lesson</a><aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-icon">ai<span>_</span></span><span>ENGINEERING LAB<small>RAG / LEARNING TRACK</small></span></a>
+    <nav aria-label="Course"><a class="nav-home" href="../index.html">◈ &nbsp; Learning path</a><a class="nav-home" href="introduction.html">↳ &nbsp; Start with RAG</a><p class="nav-label">YOUR BUILD SEQUENCE</p><a class="module-link" href="module-01.html" aria-current="page"><span class="module-num">01</span><span>Local RAG service<small>Build · 6 weeks</small></span><span class="module-progress" data-module-progress="1"></span></a><a class="module-link" href="module-02.html"><span class="module-num">02</span><span>Better retrieval<small>Retrieve · 6 weeks</small></span><span class="module-progress" data-module-progress="2"></span></a><a class="module-link" href="module-03.html"><span class="module-num">03</span><span>Ingestion & answers<small>Ground · 6 weeks</small></span><span class="module-progress" data-module-progress="3"></span></a><a class="module-link" href="module-04.html"><span class="module-num">04</span><span>Evaluation & gates<small>Evaluate · 6 weeks</small></span><span class="module-progress" data-module-progress="4"></span></a><a class="module-link" href="module-05.html"><span class="module-num">05</span><span>Evidence-quality model<small>Learn · 6 weeks</small></span><span class="module-progress" data-module-progress="5"></span></a><a class="module-link" href="module-06.html"><span class="module-num">06</span><span>Neural adaptation<small>Adapt · 6 weeks</small></span><span class="module-progress" data-module-progress="6"></span></a><a class="module-link" href="module-07.html"><span class="module-num">07</span><span>Deploy on AWS<small>Deploy · 6 weeks</small></span><span class="module-progress" data-module-progress="7"></span></a><a class="module-link" href="module-08.html"><span class="module-num">08</span><span>Operate in production<small>Operate · 6 weeks</small></span><span class="module-progress" data-module-progress="8"></span></a><p class="nav-label">AT YOUR WORKBENCH</p><a class="nav-home" href="../explore.html">⌕ &nbsp; Evidence explorer</a><a class="nav-home" href="../metrics.html">↕ &nbsp; Ranking workbench</a><a class="nav-home" href="../guides/production-aws.html">◇ &nbsp; AWS field guide</a><a class="nav-home" href="../resources/assessment.html">✓ &nbsp; Practical checkpoints</a><a class="nav-home" href="../course.html">≡ &nbsp; Full course guide</a></nav>
+    <div class="sidebar-bottom"><div class="progress-caption"><span>Sessions completed</span><strong data-progress-count>0 / 144</strong></div><progress max="144" value="0" data-global-progress aria-label="Completed learning sessions"></progress><button class="text-button" data-open-progress>Progress & backup ↗</button><p>3 HOURS / WEEK · YOUR OWN PACE</p></div></aside><div class="app-shell"><header class="topbar"><button class="icon-button mobile-menu" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar" id="menu-toggle">☰</button><a class="breadcrumb" href="../index.html">RAG <span>/</span> Module 1</a><div class="topbar-actions"><button class="search-button" data-search-open><span>⌕</span> Search the course <kbd>/</kbd></button><button class="icon-button" aria-label="Print this page" data-print>↗</button></div></header>
+<main id="main" tabindex="-1"><div class="lesson-heading"><p class="eyebrow">MODULE 01 / BUILD</p><div class="lesson-tools"><button class="text-button" data-expand-all>Expand all</button><button class="text-button" data-collapse-all>Focus view</button></div></div><nav class="week-nav" aria-label="Weeks in this module"><a href="#week-01--run-and-inspect-the-supplied-search">01<span>Run and inspect the supplied search</span></a><a href="#week-02--put-useful-checks-around-retrieval">02<span>Put useful checks around retrieval</span></a><a href="#week-03--repair-source-eligibility">03<span>Repair source eligibility</span></a><a href="#week-04--run-your-first-real-rag-answer">04<span>Run your first real RAG answer</span></a><a href="#week-05--build-your-own-callable-rag-pipeline">05<span>Build your own callable RAG pipeline</span></a><a href="#week-06--add-a-local-http-endpoint">06<span>Add a local HTTP endpoint</span></a></nav><article class="lesson-content" data-source="tracks/rag/lessons/Module_01.md"><h1 id="module-01--from-source-documents-to-a-running-local-rag-service">Module 01 — From source documents to a running local RAG service</h1>
+<p>Weeks 1–6 · 3 hours per week · one evolving knowledge-assistant project.</p>
+<h2 id="start-here">Start here</h2>
+<p>Finished the introduction? Start Week 1 below. Already completed evidence labeling or baseline runs? Reuse those files and skip only the steps you have actually completed.</p>
+<p><strong>Working result:</strong> A local CLI and HTTP API that retrieve evidence, call a real model, return citations and record failures.</p>
+<p>Read only the current week's instructions. Use the reference section when a step points to a concept; there are no written theory answers or oral assessments. Demonstrate progress through working code, saved runs, tests and short observations attached to a change.</p>
+<p>All shell commands start at the repository root. Paths beginning with <code>app/</code>, <code>tests/</code>, <code>artifacts/</code>, <code>data/</code> or <code>infra/</code> below mean files <strong>inside</strong> <code>projects/knowledge-assistant/</code>. You create these project files as the course progresses; the supplied baseline remains under <code>tracks/rag/lab/</code>. See the <a href="../guides/project-contract.html">project contract</a> for the directory map, interfaces and commands.</p>
+<h2 id="week-01--run-and-inspect-the-supplied-search">Week 01 — Run and inspect the supplied search</h2>
+<p>Start with evidence selection. No implementation or model setup is required this week.</p>
+<h3 id="session-a--start-and-inspect-60-minutes">Session A — Start and inspect (60 minutes)</h3>
+<ol>
+<li>If you already read the <a href="introduction.html">introduction</a>, count it as completed reading.</li>
+<li>Open the repository locally and create <code>projects/knowledge-assistant/experiments/module-01/</code>.</li>
+<li>Display the six practice questions without exposing their reference labels:</li>
+</ol>
+<pre><code class="language-bash">python3 tracks/rag/tools/practice.py
+</code></pre>
+<p>Read the <code>query</code>, reader role and current-only setting. The original questions live in <a href="../files/tracks/rag/lab/data/dev.json">dev.json</a>; source documents live in <a href="../files/tracks/rag/lab/data/corpus.json">corpus.json</a>.</p>
+<h3 id="session-b--build-or-change-60-minutes">Session B — Build or change (60 minutes)</h3>
+<ol>
+<li>Start with q02: “What is the current production catalog timeout?” Find the two catalog-timeout documents in the corpus.</li>
+<li>Worked example: accept <code>timeout-v2</code> (800 milliseconds, current, engineer access). Reject <code>timeout-v1</code> (3,000 milliseconds, archived).</li>
+<li>Create <code>experiments/module-01/evidence.md</code> with columns <code>question_id</code>, <code>accepted IDs</code>, <code>supported answer or abstention</code>, <code>reason</code>. Try q03 next, then q13, q14, q16 and q17 as time permits.</li>
+<li>Reveal the supplied labels only after your attempt: <code>python3 tracks/rag/tools/practice.py --check</code>. Note disagreements beside the affected row. Labels already seen are guided practice, not independent assessment.</li>
+</ol>
+<h3 id="session-c--run-and-verify-60-minutes">Session C — Run and verify (60 minutes)</h3>
+<p>Run the deliberately faulty retriever after labeling:</p>
+<pre><code class="language-bash">python3 tracks/rag/lab/evaluate.py --mode faulty --out projects/knowledge-assistant/experiments/module-01/faulty.json
+</code></pre>
+<p>Open <code>rows</code>, find q02, and copy its <code>retrieved</code> IDs in rank order into your table. Look up their text in the corpus. Repeat for your other labeled rows. Mark missing, archived or unauthorized evidence, or “no observed issue.” Ignore the metric summary this week. A trace here is simply the saved record of what search returned.</p>
+<p><strong>Save:</strong> <code>evidence.md</code> and <code>faulty.json</code>. No workflow essay, incident memo or release decision is due.</p>
+<p><strong>Move on when:</strong> you can reproduce the run and match its document IDs to source text. Complete unfinished rows before their search outputs are inspected; two careful rows are enough to start. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<h2 id="week-02--put-useful-checks-around-retrieval">Week 02 — Put useful checks around retrieval</h2>
+<p>Turn the observations from week one into executable checks.</p>
+<h3 id="session-a--start-and-inspect-60-minutes_1">Session A — Start and inspect (60 minutes)</h3>
+<p>Read the ranked-list example in this module's reference section. Open <a href="../files/tracks/rag/lab/retrieval.py">retrieval.py</a> at <code>metrics</code> and <a href="../files/tracks/rag/lab/test_retrieval.py">test_retrieval.py</a>. Run the existing tests:</p>
+<pre><code class="language-bash">python3 -m unittest discover -s tracks/rag/lab -p 'test*.py' -v
+</code></pre>
+<p>Inspect how <code>rr</code> on a row becomes <code>mrr</code> in the aggregate. No separate written derivation is required.</p>
+<h3 id="session-b--build-or-change-60-minutes_1">Session B — Build or change (60 minutes)</h3>
+<p>Create <code>tracks/rag/lab/test_my_metrics.py</code>. Add table-driven cases with gold <code>[A,B]</code> and rankings <code>[X,A,Y]</code>, <code>[A,B,X]</code> and <code>[X,Y,Z]</code>. Their <code>(recall, hit, rr, complete)</code> expectations at k=3 are <code>(0.5,1,0.5,0)</code>, <code>(1,1,1,1)</code> and <code>(0,0,0,0)</code>. Add duplicate-ID and empty-gold cases. Empty gold should produce null metrics, not a manufactured zero recall.</p>
+<h3 id="session-c--run-and-verify-60-minutes_1">Session C — Run and verify (60 minutes)</h3>
+<p>Run discovery again. Temporarily change an expected value and verify the test fails, then restore it. Add q13's actual retrieved list as another example and independently confirm its expected values from the evidence IDs. Keep each calculation beside its test as a short comment.</p>
+<p><strong>Save:</strong> Your metric test file and passing test output.</p>
+<p><strong>Move on when:</strong> tests distinguish a single hit from complete evidence and catch a deliberately incorrect expectation. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<h2 id="week-03--repair-source-eligibility">Week 03 — Repair source eligibility</h2>
+<p>Isolate metadata filtering from ranking changes.</p>
+<h3 id="session-a--start-and-inspect-60-minutes_2">Session A — Start and inspect (60 minutes)</h3>
+<p>Open <code>eligible</code> and <code>retrieve</code> in the baseline. Trace q02's current-only filter and the role difference between q14 and q15. Keep corpus and question labels unchanged. Create a results table with rows for faulty and filtered keyword modes and columns for recall, MRR, unauthorized-query count and stale-query count.</p>
+<h3 id="session-b--build-or-change-60-minutes_2">Session B — Build or change (60 minutes)</h3>
+<p>Run the filtered keyword baseline:</p>
+<pre><code class="language-bash">python3 tracks/rag/lab/evaluate.py --mode keyword --out projects/knowledge-assistant/experiments/module-01/keyword.json
+</code></pre>
+<p>Populate the table from the two saved runs. Add regression tests asserting that returned sources permit the request role and obey current-only intent. The fixture role is a teaching input, not production authentication.</p>
+<h3 id="session-c--run-and-verify-60-minutes_2">Session C — Run and verify (60 minutes)</h3>
+<p>Run tests and inspect q17 and q18 after filtering. Record unchanged scores as well as improvements. Keep any unresolved paraphrase miss as an issue linked to the exact question and returned IDs. Do not change labels to improve the result.</p>
+<p><strong>Save:</strong> <code>keyword.json</code>, a compact before/after table and eligibility regression tests.</p>
+<p><strong>Move on when:</strong> the filtered baseline passes defined access/freshness cases and remaining relevance misses are visible. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<h2 id="week-04--run-your-first-real-rag-answer">Week 04 — Run your first real RAG answer</h2>
+<p>Use supplied retrieval and a local model to see the complete retrieve→context→generate loop early.</p>
+<h3 id="session-a--start-and-inspect-60-minutes_3">Session A — Start and inspect (60 minutes)</h3>
+<p>Follow <a href="../guides/first-model.html">Run the first model</a>: install/start Ollama, pull <code>llama3.2:3b</code>, and verify the model responds. This is the one-time setup session. If hardware is unsuitable, use the documented Bedrock adapter route and carry setup into the next session; do not substitute a fake generated answer.</p>
+<h3 id="session-b--build-or-change-60-minutes_3">Session B — Build or change (60 minutes)</h3>
+<p>Run the provided local RAG command:</p>
+<pre><code class="language-bash">python3 tracks/rag/lab/answer.py --question-id q02 --model llama3.2:3b --out projects/knowledge-assistant/experiments/module-01/answer-q02.json
+</code></pre>
+<p>Open <code>evidence</code>, <code>system_prompt</code>, <code>answer</code> and <code>provider_response</code>. The exact context and raw model response are saved. Look up each citation; confirm the timeout value against its source, regardless of whether output validation passed.</p>
+<h3 id="session-c--run-and-verify-60-minutes_3">Session C — Run and verify (60 minutes)</h3>
+<p>Run q13 (multiple evidence) and q16 (no known supporting evidence). Save separate outputs. Mark each factual claim supported, contradicted or unsupported in a small CSV. A lexical match for q16 is not proof an answer exists. If JSON validation fails, open <code>validation_error</code> and <code>provider_response</code> in the saved run and fix the model/prompt configuration before retrying; never silently turn an error into a success.</p>
+<p><strong>Save:</strong> Three real-model run records, actual model tag/digest from Ollama, and claim-review rows.</p>
+<p><strong>Move on when:</strong> at least one real answer has been traced from retrieved text through the model output, including an abstention attempt. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<h2 id="week-05--build-your-own-callable-rag-pipeline">Week 05 — Build your own callable RAG pipeline</h2>
+<p>Move from supplied scripts to the project you will keep deploying.</p>
+<h3 id="session-a--start-and-inspect-60-minutes_4">Session A — Start and inspect (60 minutes)</h3>
+<p>Create the package layout in <a href="../guides/project-contract.html">project contract</a>. Implement a development-document loader and copy the baseline retrieval algorithm into <code>app/retrieval.py</code> with attribution. Keep reference data read-only and put project data snapshots under <code>data/</code>. Create a typed result containing answer, citations, abstention and request ID.</p>
+<h3 id="session-b--build-or-change-60-minutes_4">Session B — Build or change (60 minutes)</h3>
+<p>Implement <code>app/pipeline.py</code> with <code>answer(question, principal, config)</code> and <code>app/generation.py</code> with the local model adapter from week four. Add <code>app/cli.py</code> so <code>python -m app.cli --question-id q02</code> works from the project directory. Inject the generator dependency: unit tests use labeled test doubles, interactive runs use the real model. Fixture roles remain local-only.</p>
+<h3 id="session-c--run-and-verify-60-minutes_4">Session C — Run and verify (60 minutes)</h3>
+<p>Add end-to-end tests for q02, no evidence, unknown citation ID and model timeout. Unit-test failure behavior with doubles; separately save one real CLI run. Return a controlled error or abstention for insufficient evidence, without inventing an answer. Confirm the full source text can be traced by evidence ID.</p>
+<p><strong>Save:</strong> <code>app/</code> package, tests, dependency record and one saved CLI run.</p>
+<p><strong>Move on when:</strong> a single command runs your own pipeline and failure tests exercise the actual boundary used by it. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<h2 id="week-06--add-a-local-http-endpoint">Week 06 — Add a local HTTP endpoint</h2>
+<p>Create the interface used by later evaluation and deployment work.</p>
+<h3 id="session-a--start-and-inspect-60-minutes_5">Session A — Start and inspect (60 minutes)</h3>
+<p>Install FastAPI, Uvicorn and pytest in the project environment. Implement <code>POST /answer</code> in <code>app/api.py</code> using the contract guide. Bind only to loopback. For now the development principal comes from local configuration; reject a role supplied in the request body. Production token validation is added in Module 7.</p>
+<h3 id="session-b--build-or-change-60-minutes_5">Session B — Build or change (60 minutes)</h3>
+<p>Add <code>GET /health/live</code> and <code>GET /health/ready</code>. Live means the process responds; ready means the required active index/config has loaded. Start the service:</p>
+<pre><code class="language-bash">cd projects/knowledge-assistant
+python -m uvicorn app.api:app --host 127.0.0.1 --port 8000
+</code></pre>
+<p>From another terminal run the curl example in the contract guide. Save the response and a request trace with the same request ID.</p>
+<h3 id="session-c--run-and-verify-60-minutes_5">Session C — Run and verify (60 minutes)</h3>
+<p>Add HTTP tests for a valid request, oversized question, missing index and generator timeout. Ensure errors are non-200 and carry a request ID without raw stack traces. Stop and restart the server, then rerun one real query. Update the project README with the commands that actually worked.</p>
+<p><strong>Save:</strong> Local API, HTTP tests and reproducible startup/query commands.</p>
+<p><strong>Move on when:</strong> your own service answers a real request locally and its failure responses are tested. Continue to Module 2; no final oral or written exam. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<h2 id="next-step">Next step</h2>
+<p>Open <a href="module-02.html">Module 2</a>, Week 7. Your existing local API is the system you will improve.</p>
+<h2 id="reference--evidence-and-retrieval-metrics">Reference — evidence and retrieval metrics</h2>
+<p>A RAG system has separable failure boundaries: source data, ingestion, representation, retrieval, context selection, generation and output validation. An answer can be fluent and cite a real document while still being wrong. A citation identifier proves where text came from; it does not prove that the cited passage entails the claim, is current, or is authorized for this user.</p>
+<p>Begin by specifying the unit of truth. A question may need one passage, several jointly sufficient passages, a time-specific policy or an explicit refusal. Label supporting evidence independently from the system's retrieved results. Otherwise the benchmark rewards whichever evidence the current retriever happens to find. In this course, document-level labels start the exercise; later you add passage offsets and claim-level support.</p>
+<h3 id="start-with-a-ranked-list">Start with a ranked list</h3>
+<p>Ask: “How do I roll back staging and production?” Document A explains staging; document B explains production. Both are needed for this question. Documents X and Y are irrelevant.</p>
+<p>Suppose the first three unique retrieved IDs are <strong>X, A, Y</strong>. We found one of the two supporting documents, and the first useful result is in position two.</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>What it asks</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recall@3</td>
+<td>What fraction of the labeled relevant documents did we find?</td>
+<td>1 / 2 = 0.5</td>
+</tr>
+<tr>
+<td>Hit@3</td>
+<td>Did we find at least one relevant document?</td>
+<td>1, meaning yes</td>
+</tr>
+<tr>
+<td>Reciprocal Rank@3 (RR@3)</td>
+<td>How early is the first relevant result?</td>
+<td>1 / 2 = 0.5</td>
+</tr>
+<tr>
+<td>Complete labeled-set coverage@3</td>
+<td>Did we retrieve every labeled relevant document?</td>
+<td>0, meaning no</td>
+</tr>
+</tbody>
+</table>
+<p>Hit is perfect here even though the production instructions are missing. RR rewards finding the first useful item early; it does not measure whether the remaining evidence was found.</p>
+<p><strong>MRR means mean reciprocal rank across queries.</strong> If three answerable questions have RR values 1, 0.5 and 0, their MRR is (1 + 0.5 + 0) / 3 = 0.5. The per-query JSON uses <code>rr</code>; the aggregate summary uses <code>mrr</code>.</p>
+<h3 id="the-notation-after-the-example">The notation, after the example</h3>
+<p>For question q, G(q) is the set of labeled relevant document IDs. R_k(q) is the first k unique retrieved document IDs, in retrieval order. The intersection G ∩ R_k contains IDs appearing in both; vertical bars mean “number of items.”</p>
+<ul>
+<li>Recall@k = |G ∩ R_k| / |G|, for nonempty G.</li>
+<li>Hit@k = 1 when the intersection is nonempty, otherwise 0.</li>
+<li>RR@k = 1 / rank of the first relevant result within the top k, otherwise 0.</li>
+<li>MRR@k = the mean of RR@k over the declared evaluation population. This harness uses answerable questions.</li>
+</ul>
+<p>The supplied <code>complete</code> field means every labeled relevant ID was retrieved. It is a diagnostic, not a general answerability score. Relevant documents can be redundant: finding one of two equivalent sources can be sufficient even with recall 0.5. In our staging/production example the documents are complementary, so both are required. Later benchmarks should label required facts and alternative supporting passages to measure evidence sufficiency directly.</p>
+<p>Questions with no authorized supporting evidence have an empty G. Recall is undefined there, so report them in an abstention slice, not as failed retrieval. The same words can be answerable for one principal and unanswerable for another. Authorization belongs in the evaluation context.</p>
+<p>The offline harness contains a deliberately weak keyword retriever and deterministic answer fixtures. The fixtures reproduce failure shapes; they are not calls to an LLM and cannot establish model quality. This separation lets you debug evidence selection cheaply before integrating a generator. The corpus is fictional engineering material, with conflicts, paraphrases and restricted notes. Its small size supports controlled experiments, not claims about enterprise search performance.</p>
+<h2 id="worked-example">Worked example</h2>
+<p>A user asks for the current playback rollback procedure. An archived runbook shares the exact words in the query and scores above a current runbook that says “restore the previous release.” The old document is a good lexical match but wrong evidence for a current-policy question. Three possible interventions are metadata-based current-version selection, semantic retrieval and prompt instructions. Test metadata first: a prompt cannot reliably repair an incorrect authoritative-source selection rule.</p></article><footer class="page-footer"><span>AI ENGINEERING LAB <span aria-hidden="true">/</span> Learn by building.</span><a href="../sources/tracks/rag/lessons/Module_01.md" download>Download lesson Markdown ↗</a></footer></main></div>
+<dialog id="search-dialog" aria-labelledby="search-title"><div class="dialog-head"><h2 id="search-title">Find your next step</h2><button class="icon-button" data-close-dialog aria-label="Close search">×</button></div><label class="sr-only" for="search-input">Search all lessons</label><input id="search-input" type="search" placeholder="Try ‘context’, ‘week 4’ or ‘rollback’" autocomplete="off"><div id="search-results" aria-live="polite"><p class="muted">Search lesson text, sessions and deployment guides.</p></div></dialog>
+<dialog id="progress-dialog" aria-labelledby="progress-title"><div class="dialog-head"><h2 id="progress-title">Your learning progress</h2><button class="icon-button" data-close-dialog aria-label="Close progress">×</button></div><p>Saved in this browser only. Export a backup to continue on another device. This tracks your work; it does not grade it.</p><p class="storage-status" role="status"></p><div class="dialog-actions"><button class="button primary" id="export-progress">Export progress</button><label class="button">Import backup<input class="sr-only" type="file" id="import-progress" accept="application/json"></label></div><p id="import-status" role="status"></p><details><summary>Reset this browser’s progress</summary><p>This cannot be undone without a backup.</p><button class="button danger" id="reset-progress">Reset saved progress</button></details></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><noscript><div class="noscript">Lesson content and links remain readable. Enable JavaScript for session controls, search and interactive workbenches.</div></noscript></body></html>

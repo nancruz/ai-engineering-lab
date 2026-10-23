@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="description" content="A practical, visual path from RAG evidence to production deployment."><title>Run the first real model · AI Engineering Lab</title><link rel="stylesheet" href="../assets/style.css"><script defer src="../assets/course-data.js"></script><script defer src="../assets/learning.js"></script><script defer src="../assets/app.js"></script></head>
+<body data-page="guides/first-model.html" data-module=""><a class="skip-link" href="#main">Skip to lesson</a><aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-icon">ai<span>_</span></span><span>ENGINEERING LAB<small>RAG / LEARNING TRACK</small></span></a>
+    <nav aria-label="Course"><a class="nav-home" href="../index.html">◈ &nbsp; Learning path</a><a class="nav-home" href="../lessons/introduction.html">↳ &nbsp; Start with RAG</a><p class="nav-label">YOUR BUILD SEQUENCE</p><a class="module-link" href="../lessons/module-01.html"><span class="module-num">01</span><span>Local RAG service<small>Build · 6 weeks</small></span><span class="module-progress" data-module-progress="1"></span></a><a class="module-link" href="../lessons/module-02.html"><span class="module-num">02</span><span>Better retrieval<small>Retrieve · 6 weeks</small></span><span class="module-progress" data-module-progress="2"></span></a><a class="module-link" href="../lessons/module-03.html"><span class="module-num">03</span><span>Ingestion & answers<small>Ground · 6 weeks</small></span><span class="module-progress" data-module-progress="3"></span></a><a class="module-link" href="../lessons/module-04.html"><span class="module-num">04</span><span>Evaluation & gates<small>Evaluate · 6 weeks</small></span><span class="module-progress" data-module-progress="4"></span></a><a class="module-link" href="../lessons/module-05.html"><span class="module-num">05</span><span>Evidence-quality model<small>Learn · 6 weeks</small></span><span class="module-progress" data-module-progress="5"></span></a><a class="module-link" href="../lessons/module-06.html"><span class="module-num">06</span><span>Neural adaptation<small>Adapt · 6 weeks</small></span><span class="module-progress" data-module-progress="6"></span></a><a class="module-link" href="../lessons/module-07.html"><span class="module-num">07</span><span>Deploy on AWS<small>Deploy · 6 weeks</small></span><span class="module-progress" data-module-progress="7"></span></a><a class="module-link" href="../lessons/module-08.html"><span class="module-num">08</span><span>Operate in production<small>Operate · 6 weeks</small></span><span class="module-progress" data-module-progress="8"></span></a><p class="nav-label">AT YOUR WORKBENCH</p><a class="nav-home" href="../explore.html">⌕ &nbsp; Evidence explorer</a><a class="nav-home" href="../metrics.html">↕ &nbsp; Ranking workbench</a><a class="nav-home" href="production-aws.html">◇ &nbsp; AWS field guide</a><a class="nav-home" href="../resources/assessment.html">✓ &nbsp; Practical checkpoints</a><a class="nav-home" href="../course.html">≡ &nbsp; Full course guide</a></nav>
+    <div class="sidebar-bottom"><div class="progress-caption"><span>Sessions completed</span><strong data-progress-count>0 / 144</strong></div><progress max="144" value="0" data-global-progress aria-label="Completed learning sessions"></progress><button class="text-button" data-open-progress>Progress & backup ↗</button><p>3 HOURS / WEEK · YOUR OWN PACE</p></div></aside><div class="app-shell"><header class="topbar"><button class="icon-button mobile-menu" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar" id="menu-toggle">☰</button><a class="breadcrumb" href="../index.html">RAG <span>/</span> Run the first real model</a><div class="topbar-actions"><button class="search-button" data-search-open><span>⌕</span> Search the course <kbd>/</kbd></button><button class="icon-button" aria-label="Print this page" data-print>↗</button></div></header>
+<main id="main" tabindex="-1"><div class="lesson-heading"><p class="eyebrow">COURSE MATERIAL</p><div class="lesson-tools"><button class="text-button" data-expand-all>Expand all</button><button class="text-button" data-collapse-all>Focus view</button></div></div><article class="lesson-content" data-source="tracks/rag/guides/first-model.md"><h1 id="run-the-first-real-model">Run the first real model</h1>
+<p>Use this in Module 1, week four. Earlier scripts only retrieve and evaluate. This session adds a real generator and saves its exact evidence and response.</p>
+<h2 id="default-local-route">Default local route</h2>
+<ol>
+<li>Install Ollama using its <a href="https://docs.ollama.com/quickstart">official download/setup instructions</a>. Start the local service. Keep it on localhost.</li>
+<li>Download the starter model in a terminal:</li>
+</ol>
+<pre><code class="language-bash">ollama pull llama3.2:3b
+ollama list
+</code></pre>
+<ol start="3">
+<li>Record the actual tag/digest and installation version. A 3B-class model still needs suitable RAM/storage; download/setup and cold-start time count toward your session. If unavailable or too slow, use the cloud alternative below and record the difference. Check the <a href="https://ollama.com/library/llama3.2:3b">starter model card and license</a> when installing.</li>
+<li>At repository root, run:</li>
+</ol>
+<pre><code class="language-bash">python3 tracks/rag/lab/answer.py --question-id q02 --model llama3.2:3b --out projects/knowledge-assistant/experiments/module-01/answer-q02.json
+</code></pre>
+<p>The script retrieves current authorized candidates using BM25, sends their text and IDs to Ollama's <code>/api/chat</code>, requests nonstreamed JSON and validates its structure/citation IDs. It saves question, prompt, context, requested model, raw provider metadata and parsed output. It never uses reference evidence labels to choose the answer.</p>
+<ol start="5">
+<li>Open the saved file and check the answer against <code>evidence</code>. A schema-valid answer can still be wrong. q02 should be checked against the current 800-millisecond policy, not against text generated by another model.</li>
+<li>Repeat with <code>--question-id q13</code> and <code>q16</code>, changing the output filename each time. Check completeness and whether the model abstains where evidence is insufficient.</li>
+</ol>
+<h2 id="what-a-failure-means">What a failure means</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Next action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Connection refused</td>
+<td>Start Ollama and confirm its localhost port; do not change retrieval code.</td>
+</tr>
+<tr>
+<td>Model not found</td>
+<td>Check <code>ollama list</code> and pull/select an installed compatible tag.</td>
+</tr>
+<tr>
+<td>Slow first response</td>
+<td>Separate loading time from warm inference; use the bounded timeout and record actual hardware.</td>
+</tr>
+<tr>
+<td>Invalid JSON or unknown citation</td>
+<td>Open the saved result: <code>validation_error</code> describes the failure and <code>provider_response</code> preserves the raw output. Validation is doing its job. Do not fabricate a successful response.</td>
+</tr>
+<tr>
+<td>Correct-looking answer, wrong fact</td>
+<td>Inspect selected evidence and claim support; valid structure does not establish truth.</td>
+</tr>
+<tr>
+<td>No matching eligible results</td>
+<td>The supplied script abstains without calling a model. Record this separately from model-generated abstention.</td>
+</tr>
+</tbody>
+</table>
+<p>The fixture reader role is not authenticated. This script uses fictional data and is a local learning tool. Its citation checks constrain output shape; they do not establish semantic grounding or production security.</p>
+<h2 id="cloud-alternative-if-local-hardware-is-unsuitable">Cloud alternative if local hardware is unsuitable</h2>
+<p>Use the Bedrock adapter example in the <a href="production-aws.html#bedrock-generator-adapter">AWS guide</a> behind the same <code>generate(messages, settings)</code> interface. Install boto3 in your project environment, authenticate through your own AWS SSO profile, select a Converse-compatible model available in your account/region and bound output tokens and call count. Keep the same evidence selection and JSON validation used by the local example.</p>
+<p>This alternative requires implementing a small adapter before the first call. Record the provider/model and the extra setup time. No paid calls, AWS accounts or permissions are provisioned for you by the course. Stop setup at the session limit and resume; a recorded fixture is not a substitute for completing a real model call.</p>
+<h2 id="reference">Reference</h2>
+<p><a href="https://docs.ollama.com/api/chat">Ollama chat API</a> documents messages, JSON output and nonstreaming responses. The course helper is a small example around that API, not a complete provider resilience layer. Timeouts, retry policy and provider substitution are developed in Module 3.</p></article><footer class="page-footer"><span>AI ENGINEERING LAB <span aria-hidden="true">/</span> Learn by building.</span><a href="../sources/tracks/rag/guides/first-model.md" download>Download lesson Markdown ↗</a></footer></main></div>
+<dialog id="search-dialog" aria-labelledby="search-title"><div class="dialog-head"><h2 id="search-title">Find your next step</h2><button class="icon-button" data-close-dialog aria-label="Close search">×</button></div><label class="sr-only" for="search-input">Search all lessons</label><input id="search-input" type="search" placeholder="Try ‘context’, ‘week 4’ or ‘rollback’" autocomplete="off"><div id="search-results" aria-live="polite"><p class="muted">Search lesson text, sessions and deployment guides.</p></div></dialog>
+<dialog id="progress-dialog" aria-labelledby="progress-title"><div class="dialog-head"><h2 id="progress-title">Your learning progress</h2><button class="icon-button" data-close-dialog aria-label="Close progress">×</button></div><p>Saved in this browser only. Export a backup to continue on another device. This tracks your work; it does not grade it.</p><p class="storage-status" role="status"></p><div class="dialog-actions"><button class="button primary" id="export-progress">Export progress</button><label class="button">Import backup<input class="sr-only" type="file" id="import-progress" accept="application/json"></label></div><p id="import-status" role="status"></p><details><summary>Reset this browser’s progress</summary><p>This cannot be undone without a backup.</p><button class="button danger" id="reset-progress">Reset saved progress</button></details></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><noscript><div class="noscript">Lesson content and links remain readable. Enable JavaScript for session controls, search and interactive workbenches.</div></noscript></body></html>

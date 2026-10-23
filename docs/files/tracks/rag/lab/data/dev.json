@@ -1,0 +1,181 @@
+[
+  {
+    "id": "q01",
+    "family": "rollback",
+    "query": "When should we restore the previous playback release?",
+    "role": "engineer",
+    "current_only": true,
+    "relevant": [
+      "rollback-v2"
+    ],
+    "expected": "answer",
+    "split": "dev",
+    "slice": "policy"
+  },
+  {
+    "id": "q02",
+    "family": "timeout",
+    "query": "What is the current production catalog timeout?",
+    "role": "engineer",
+    "current_only": true,
+    "relevant": [
+      "timeout-v2"
+    ],
+    "expected": "answer",
+    "split": "dev",
+    "slice": "policy"
+  },
+  {
+    "id": "q03",
+    "family": "retention",
+    "query": "How long do we retain production diagnostic traces?",
+    "role": "engineer",
+    "current_only": true,
+    "relevant": [
+      "retention-v2"
+    ],
+    "expected": "answer",
+    "split": "dev",
+    "slice": "policy"
+  },
+  {
+    "id": "q04",
+    "family": "staging",
+    "query": "Can we apply the staging restoration procedure in production?",
+    "role": "engineer",
+    "current_only": true,
+    "relevant": [
+      "staging-v2"
+    ],
+    "expected": "answer",
+    "split": "dev",
+    "slice": "policy"
+  },
+  {
+    "id": "q05",
+    "family": "keys",
+    "query": "How do we rotate credentials without breaking callers?",
+    "role": "engineer",
+    "current_only": true,
+    "relevant": [
+      "keys-v2"
+    ],
+    "expected": "answer",
+    "split": "dev",
+    "slice": "policy"
+  },
+  {
+    "id": "q06",
+    "family": "index",
+    "query": "How should a new knowledge index be released?",
+    "role": "engineer",
+    "current_only": true,
+    "relevant": [
+      "index-v2"
+    ],
+    "expected": "answer",
+    "split": "dev",
+    "slice": "policy"
+  },
+  {
+    "id": "q07",
+    "family": "delete",
+    "query": "A deleted page still appears in answers. What must we remove?",
+    "role": "engineer",
+    "current_only": true,
+    "relevant": [
+      "delete-v2"
+    ],
+    "expected": "answer",
+    "split": "dev",
+    "slice": "policy"
+  },
+  {
+    "id": "q08",
+    "family": "cache",
+    "query": "Can two users with different permissions share a cached answer?",
+    "role": "engineer",
+    "current_only": true,
+    "relevant": [
+      "cache-v2"
+    ],
+    "expected": "answer",
+    "split": "dev",
+    "slice": "policy"
+  },
+  {
+    "id": "q13",
+    "family": "joint-rollback",
+    "query": "Compare staging and production rollback approval and trigger conditions.",
+    "role": "engineer",
+    "current_only": true,
+    "relevant": [
+      "rollback-v2",
+      "staging-v2"
+    ],
+    "expected": "answer",
+    "split": "dev",
+    "slice": "multi-evidence"
+  },
+  {
+    "id": "q14",
+    "family": "restricted-capacity",
+    "query": "What is the playback emergency capacity setting in workers?",
+    "role": "engineer",
+    "current_only": true,
+    "relevant": [],
+    "expected": "abstain",
+    "split": "dev",
+    "slice": "authorization"
+  },
+  {
+    "id": "q15",
+    "family": "restricted-capacity",
+    "query": "What is the playback emergency capacity setting in workers?",
+    "role": "admin",
+    "current_only": true,
+    "relevant": [
+      "capacity-private"
+    ],
+    "expected": "answer",
+    "split": "dev",
+    "slice": "authorization"
+  },
+  {
+    "id": "q16",
+    "family": "missing-orion",
+    "query": "Who approved project ORION on 14 September?",
+    "role": "engineer",
+    "current_only": true,
+    "relevant": [],
+    "expected": "abstain",
+    "split": "dev",
+    "slice": "missing"
+  },
+  {
+    "id": "q17",
+    "family": "rollback",
+    "query": "How do we undo a bad stream-service rollout?",
+    "role": "engineer",
+    "current_only": true,
+    "relevant": [
+      "rollback-v2"
+    ],
+    "expected": "answer",
+    "split": "dev",
+    "slice": "paraphrase"
+  },
+  {
+    "id": "q18",
+    "family": "timeout",
+    "query": "What deadline prevents a catalog read from hanging?",
+    "role": "engineer",
+    "current_only": true,
+    "relevant": [
+      "timeout-v2"
+    ],
+    "expected": "answer",
+    "split": "dev",
+    "slice": "paraphrase"
+  }
+]
