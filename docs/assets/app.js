@@ -27,7 +27,7 @@
     const resume=data.sessions.find(s=>s.id===state.last&&!done.has(s.id))||data.sessions.find(s=>!done.has(s.id));
     if(state.completed.length||state.last){
       $$('[data-resume]').forEach(e=>{e.href=localHref(resume?resume.href:'resources/assessment.html');e.innerHTML=resume?'Continue learning <span>↗</span>':'Review practical checkpoints <span>↗</span>';});
-      $$('[data-resume-title]').forEach(e=>e.textContent=resume?`Week ${resume.week} · Session ${resume.letter} — ${resume.title}`:'All learning sessions marked complete');
+      $$('[data-resume-title]').forEach(e=>e.textContent=resume?`Week ${resume.week} · Session ${resume.letter} — ${data.modules.find(m=>m.id===resume.module).title}`:'All learning sessions marked complete');
     }
     $$('.storage-status').forEach(e=>e.textContent=storageAvailable?'Stored on this browser. No account or analytics required.':'Browser storage is unavailable. Export a backup to keep this session’s progress.');
   }
@@ -119,10 +119,42 @@
   $$('[data-close-dialog]').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
   $$('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}}));
   document.addEventListener('keydown',e=>{if(e.key==='/'&&!e.metaKey&&!e.ctrlKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)&&!document.querySelector('dialog[open]')){e.preventDefault();searchDialog.showModal();$('#search-input').focus();}if(e.key==='Escape'){$('#sidebar').classList.remove('open');$('#menu-toggle')?.setAttribute('aria-expanded','false');}});
-  $('#search-input').addEventListener('input',e=>{
-    const query=e.target.value.trim().toLowerCase(),result=$('#search-results');result.replaceChildren();if(query.length<2){const p=document.createElement('p');p.className='muted';p.textContent='Type at least two characters to search all course material.';result.append(p);return;}
-    const normalized=s=>s.toLowerCase().replace(/\bweek\s+0*(\d+)\b/g,'week $1');const needle=normalized(query);const score=p=>(normalized(p.title).includes(needle)?30:0)+normalized(p.text).split(needle).length-1;const matches=data.search.filter(p=>normalized(p.title+' '+p.text).includes(needle)).sort((a,b)=>score(b)-score(a)).slice(0,12);
-    matches.forEach(p=>{const a=document.createElement('a');a.className='search-hit';a.href=localHref(p.href);const title=document.createElement('strong');title.textContent=p.title;const snippet=document.createElement('p');const at=p.text.toLowerCase().indexOf(query);snippet.textContent=(at>60?'…':'')+p.text.slice(Math.max(0,at-60),Math.max(0,at-60)+190)+'…';a.append(title,snippet);result.append(a);});if(!matches.length)result.textContent='No matching lesson text.';
+  // Search reads the editable HTML pages directly. There is no generated content index.
+  let searchPagesPromise,searchSequence=0;
+  function searchPages(){
+    if(!searchPagesPromise)searchPagesPromise=(async()=>{
+      if(location.protocol==='file:')return data.search.map(p=>({...p,text:p.title,localOnly:true}));
+      return Promise.all(data.search.map(async p=>{
+        try{
+          const response=await fetch(localHref(p.href));
+          if(!response.ok)throw new Error('Page unavailable');
+          const document=new DOMParser().parseFromString(await response.text(),'text/html');
+          return {...p,title:document.querySelector('h1')?.textContent||p.title,text:(document.querySelector('article')||document.querySelector('main')).textContent.replace(/\s+/g,' ')};
+        }catch(error){return {...p,text:p.title,localOnly:true};}
+      }));
+    })();
+    return searchPagesPromise;
+  }
+  $('#search-input').addEventListener('input',async e=>{
+    const sequence=++searchSequence,query=e.target.value.trim().toLowerCase(),result=$('#search-results');
+    result.replaceChildren();
+    if(query.length<2){result.textContent='Type at least two characters to search all course material.';return;}
+    result.textContent='Searching course pages…';
+    const pages=await searchPages();
+    if(sequence!==searchSequence)return;
+    result.replaceChildren();
+    const normalized=s=>s.toLowerCase().replace(/\bweek\s+0*(\d+)\b/g,'week $1'),needle=normalized(query);
+    const score=p=>(normalized(p.title).includes(needle)?30:0)+normalized(p.text).split(needle).length-1;
+    const matches=pages.filter(p=>normalized(p.title+' '+p.text).includes(needle)).sort((a,b)=>score(b)-score(a)).slice(0,12);
+    matches.forEach(p=>{
+      const a=document.createElement('a');a.className='search-hit';a.href=localHref(p.href);
+      const title=document.createElement('strong');title.textContent=p.title;
+      const snippet=document.createElement('p'),at=normalized(p.text).indexOf(needle);
+      snippet.textContent=(at>60?'…':'')+p.text.slice(Math.max(0,at-60),Math.max(0,at-60)+190)+'…';
+      a.append(title,snippet);result.append(a);
+    });
+    if(!matches.length)result.textContent='No matching lesson text.';
+    if(pages.some(p=>p.localOnly)){const note=document.createElement('p');note.className='muted';note.textContent='Some pages are searchable by title only. Full-text search needs this folder served over HTTP/HTTPS.';result.append(note);}
   });
   $('#export-progress').addEventListener('click',()=>{const blob=new Blob([JSON.stringify({version:1,exported_at:new Date().toISOString(),...state},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='rag-course-progress.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
   $('#import-progress').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>100000)throw new Error('Backup is too large.');const raw=JSON.parse(await file.text());if(raw.version!==1||!Array.isArray(raw.completed)||raw.completed.some(x=>!known.has(x)))throw new Error('Use an exported RAG course backup.');state=cleanState(raw);save();$('#import-status').textContent=`Imported ${state.completed.length} completed sessions.`;}catch(error){$('#import-status').textContent=error.message;}e.target.value='';});
