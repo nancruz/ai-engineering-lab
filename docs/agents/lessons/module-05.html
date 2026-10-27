@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="description" content="Build, evaluate and operate tool-using AI agents, one evolving project at a time."><title>Module 05 — Evaluate agents on outcomes and reliability · AI Engineering Lab</title><link rel="stylesheet" href="../assets/style.css"><script defer src="../assets/course-data.js"></script><script defer src="../assets/agentlab.js"></script><script defer src="../assets/app.js"></script></head>
+<body data-page="lessons/module-05.html" data-module="5"><a class="skip-link" href="#main">Skip to lesson</a><aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-icon">ai<span>_</span></span><span>ENGINEERING LAB<small>AGENTS / LEARNING TRACK</small></span></a>
+    <nav aria-label="Course"><a class="nav-home" href="../../index.html">← &nbsp; All courses</a><a class="nav-home" href="../index.html">◈ &nbsp; Learning path</a><a class="nav-home" href="../lessons/introduction.html">↳ &nbsp; Start with agents</a><p class="nav-label">YOUR BUILD SEQUENCE</p><a class="module-link" href="../lessons/module-01.html"><span class="module-num">01</span><span>The agent loop<small>Loop · 4 weeks</small></span><span class="module-progress" data-module-progress="1"></span></a><a class="module-link" href="../lessons/module-02.html"><span class="module-num">02</span><span>Tools &amp; MCP<small>Tools · 4 weeks</small></span><span class="module-progress" data-module-progress="2"></span></a><a class="module-link" href="../lessons/module-03.html"><span class="module-num">03</span><span>Context &amp; memory<small>Context · 4 weeks</small></span><span class="module-progress" data-module-progress="3"></span></a><a class="module-link" href="../lessons/module-04.html"><span class="module-num">04</span><span>Guardrails &amp; approval<small>Guard · 4 weeks</small></span><span class="module-progress" data-module-progress="4"></span></a><a class="module-link" href="../lessons/module-05.html" aria-current="page"><span class="module-num">05</span><span>Evaluating agents<small>Evaluate · 4 weeks</small></span><span class="module-progress" data-module-progress="5"></span></a><a class="module-link" href="../lessons/module-06.html"><span class="module-num">06</span><span>Multi-agent &amp; frameworks<small>Orchestrate · 4 weeks</small></span><span class="module-progress" data-module-progress="6"></span></a><a class="module-link" href="../lessons/module-07.html"><span class="module-num">07</span><span>Agents in production<small>Operate · 4 weeks</small></span><span class="module-progress" data-module-progress="7"></span></a><p class="nav-label">AT YOUR WORKBENCH</p><a class="nav-home" href="../loop.html">↻ &nbsp; Agent loop</a><a class="nav-home" href="../tools.html">{ } &nbsp; Tool contracts</a><a class="nav-home" href="../guardrails.html">⛨ &nbsp; Action gate</a><a class="nav-home" href="../evals.html">✓ &nbsp; Trial grader</a><a class="nav-home" href="../cost.html">$ &nbsp; Cost &amp; context</a><p class="nav-label">REFERENCE</p><a class="nav-home" href="../guides/project-contract.html">⌂ &nbsp; Project contract</a><a class="nav-home" href="../guides/first-model.html">◇ &nbsp; Connect a real model</a><a class="nav-home" href="../resources/lab.html">▸ &nbsp; Lab commands</a><a class="nav-home" href="../resources/assessment.html">⚑ &nbsp; Practical checkpoints</a><a class="nav-home" href="../course.html">≡ &nbsp; Full course guide</a></nav>
+    <div class="sidebar-bottom"><div class="progress-caption"><span>Sessions completed</span><strong data-progress-count>0 / 84</strong></div><progress max="84" value="0" data-global-progress aria-label="Completed learning sessions"></progress><button class="text-button" data-open-progress>Progress &amp; backup ↗</button><p>3 HOURS / WEEK · YOUR OWN PACE</p></div></aside><div class="app-shell"><header class="topbar"><button class="icon-button mobile-menu" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar" id="menu-toggle">☰</button><a class="breadcrumb" href="../index.html">Agents <span>/</span> Module 5</a><div class="topbar-actions"><button class="search-button" data-search-open><span>⌕</span> Search the course <kbd>/</kbd></button><button class="icon-button" aria-label="Print this page" data-print>↗</button></div></header>
+<main id="main" tabindex="-1"><div class="lesson-heading"><p class="eyebrow">MODULE 05 / EVALUATE</p><div class="lesson-tools"><button class="text-button" data-expand-all>Expand all</button><button class="text-button" data-collapse-all>Focus view</button></div></div><nav class="week-nav" aria-label="Weeks in this module"><a href="#week-17--build-a-task-suite-with-end-state-checks">17<span>Build a task suite with end-state checks</span></a><a href="#week-18--grade-trajectories-not-just-answers">18<span>Grade trajectories, not just answers</span></a><a href="#week-19--measure-reliability-across-repeated-trials">19<span>Measure reliability across repeated trials</span></a><a href="#week-20--gate-agent-releases-on-evaluation">20<span>Gate agent releases on evaluation</span></a></nav><article class="lesson-content"><h1 id="module-05--evaluate-agents-on-outcomes-and-reliability">Module 05 — Evaluate agents on outcomes and reliability</h1>
+<p>Weeks 17–20 · 3 hours per week · one evolving ops-agent project.</p>
+<h2 id="start-here">Start here</h2>
+<p>Agents are judged by what they leave behind (tickets, rollbacks, answers) and by whether they do it every time, not once. In this module you build a task suite with end-state checks, add trajectory graders, measure reliability across repeated trials and gate releases on the results.</p>
+<p><strong>Working result:</strong> A versioned task suite with development and final splits, graders for outcomes and trajectories, a multi-trial runner reporting pass@k and pass^k, and a release gate that blocks a seeded regression.</p>
+<p>Read only the current week's instructions. Use the reference section when a step points to a concept. Show progress with working code, saved runs, tests and short notes attached to a change. Quick checks are for you and are never graded.</p>
+<p>All shell commands start at the repository root. Paths beginning with <code>app/</code>, <code>configs/</code>, <code>data/</code>, <code>tests/</code> or <code>artifacts/</code> mean files inside <code>projects/ops-agent/</code>.</p>
+<h2 id="week-17--build-a-task-suite-with-end-state-checks">Week 17 — Build a task suite with end-state checks</h2>
+<p>Define success by what happened, then make it repeatable.</p>
+<h3 id="session-a--start-and-inspect-60-minutes">Session A — Start and inspect (60 minutes)</h3>
+<p>Read <code>check()</code> in <a href="../files/tracks/agents/lab/agent.py">agent.py</a>: it inspects side effects, drafts and the final answer, not the wording of the trajectory. Draft about twenty tasks across families: policy questions, rollback met / not met / metrics failing, missing evidence, injection, approvals and the long handover. For each, write the environment fixture and the end-state checks.</p>
+<h3 id="session-b--build-or-change-60-minutes">Session B — Build or change (60 minutes)</h3>
+<p>Store tasks in <code>data/tasks/dev.jsonl</code> and <code>data/tasks/final.jsonl</code>, split by family so paraphrases of one task never cross the split. Write the runner behind <code>make -C projects/ops-agent eval</code>: each task runs in a fresh environment (new tracker, approvals, memory), and the runner saves every trajectory plus a summary.</p>
+<h3 id="session-c--run-and-verify-60-minutes">Session C — Run and verify (60 minutes)</h3>
+<p>Prove the checks work: for each family, run one known-good and one known-bad scripted trajectory and confirm the checks pass and fail as expected. Add a test that refuses to run the final split without an explicit <code>--final</code> flag.</p>
+<p><strong>Save:</strong> Task suite with split manifest, runner and the check-validation tests.</p>
+<p><strong>Move on when:</strong> every family has a check that is shown to catch a failure. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<div class="quick-check" data-check-id="w17">
+<p class="check-question">Why check the end state rather than read the transcript?</p>
+<ol class="check-options">
+<li>Transcripts are too long to store.</li>
+<li data-correct>The transcript can say “I drafted the approval request” when no draft exists, or hide a side effect behind a confident summary.</li>
+<li>End-state checks are always faster.</li>
+</ol>
+<p class="check-explanation">The world is the ground truth. Check the tracker, the drafts and the rollbacks directly, then use the transcript to explain why.</p>
+</div>
+<h2 id="week-18--grade-trajectories-not-just-answers">Week 18 — Grade trajectories, not just answers</h2>
+<p>Catch runs that end well but behave badly on the way.</p>
+<h3 id="session-a--start-and-inspect-60-minutes_1">Session A — Start and inspect (60 minutes)</h3>
+<p>Open the <a href="../evals.html">trial grader workbench</a>. Switch graders on and off and watch the pass rates change. Select <em>rollback-check</em> trial 3: the end state is correct, but the agent tried a rollback that the gate blocked. Decide whether that should count as a pass.</p>
+<h3 id="session-b--build-or-change-60-minutes_1">Session B — Build or change (60 minutes)</h3>
+<p>Add code-based trajectory graders: forbidden tool attempted, required evidence read before a claim (metrics before “the condition is met”), step limit, valid citation IDs and no blocked repeats. Use a model-graded rubric only for qualities code cannot check, such as whether a handover summary is clear. Calibrate it against twenty labels you write yourself and record where it agrees and disagrees.</p>
+<h3 id="session-c--run-and-verify-60-minutes_1">Session C — Run and verify (60 minutes)</h3>
+<p>Run the dev suite, open every disagreement between graders and decide which graders block a release and which are reported only. Write the decision into <code>configs/release-policy.json</code>.</p>
+<p><strong>Save:</strong> Trajectory graders, the calibrated rubric with its agreement counts, and the blocking/reporting decision.</p>
+<p><strong>Move on when:</strong> every grader is either blocking or report-only, for a written reason. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<div class="quick-check" data-check-id="w18">
+<p class="check-question">A trial reached the correct end state, but the agent attempted a rollback the gate blocked. How should you treat it?</p>
+<ol class="check-options">
+<li>Pass: the outcome was right.</li>
+<li>Fail the whole suite.</li>
+<li data-correct>Count the outcome as correct, and track the attempt as a separate safety signal that you watch and can gate on.</li>
+</ol>
+<p class="check-explanation">The gate did its job, but the attempt shows how the model behaves when the gate is missing or wrong. Keep outcome and safety metrics separate so neither hides the other.</p>
+</div>
+<h2 id="week-19--measure-reliability-across-repeated-trials">Week 19 — Measure reliability across repeated trials</h2>
+<p>Separate “can do it” from “does it every time”.</p>
+<h3 id="session-a--start-and-inspect-60-minutes_2">Session A — Start and inspect (60 minutes)</h3>
+<p>In the workbench, move k from 1 to 6 and watch pass@k and pass^k separate. Read the definitions in the reference section and check one value by hand.</p>
+<h3 id="session-b--build-or-change-60-minutes_2">Session B — Build or change (60 minutes)</h3>
+<p>Add <code>--trials n</code> to your runner, with an independent environment per trial. Report per task: pass rate, pass@k and pass^k (using the estimators in <a href="../files/tracks/agents/lab/grading.py">grading.py</a>), cost per success and the spread of steps and tokens.</p>
+<h3 id="session-c--run-and-verify-60-minutes_2">Session C — Run and verify (60 minutes)</h3>
+<p>Run five trials of the dev suite. Mark tasks as flaky when their pass rate is between 0.2 and 0.8. Read the trajectories of one flaky task, change one thing (a tool description, a stop rule or the prompt) and re-measure with the same number of trials.</p>
+<p><strong>Save:</strong> Multi-trial runner, reliability report and one flaky-task investigation with before/after numbers.</p>
+<p><strong>Move on when:</strong> your report shows pass^k per task and you have re-measured one fix. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<div class="quick-check" data-check-id="w19">
+<p class="check-question">The on-call team will run this agent several times every day. Which number matters most to them?</p>
+<ol class="check-options">
+<li>pass@k: whether at least one of k tries works.</li>
+<li data-correct>pass^k: whether all k tries work.</li>
+<li>The best single run you have recorded.</li>
+</ol>
+<p class="check-explanation">pass@k suits settings where you can retry and keep any success, such as generating candidates. Someone relying on the agent every day experiences every run, so consistency is what they feel.</p>
+</div>
+<h2 id="week-20--gate-agent-releases-on-evaluation">Week 20 — Gate agent releases on evaluation</h2>
+<p>Turn measurements into a decision your pipeline can enforce.</p>
+<h3 id="session-a--start-and-inspect-60-minutes_3">Session A — Start and inspect (60 minutes)</h3>
+<p>Before running anything final, finish <code>configs/release-policy.json</code>. Hard gates: zero forbidden side effects executed, all security tests pass, no approval bypass. Soft targets: pass^3 per family not below the last release minus a stated tolerance, cost per success within budget, and a minimum number of trials.</p>
+<h3 id="session-b--build-or-change-60-minutes_3">Session B — Build or change (60 minutes)</h3>
+<p>Implement <code>make -C projects/ops-agent gate</code>, which reads eval artifacts and exits non-zero on any hard failure while reporting soft regressions. Run the unit and security tests with scripted models on every change. Run the bounded real-model evaluation on demand before a release.</p>
+<h3 id="session-c--run-and-verify-60-minutes_3">Session C — Run and verify (60 minutes)</h3>
+<p>Seed two regressions, one at a time: remove the taint hold, then change the prompt so citations disappear. Confirm the gate blocks each one and names the reason, then restore. Run the final split once for this milestone and record that it has been used.</p>
+<p><strong>Save:</strong> Release policy, gate command, the two blocked releases and the final-split result.</p>
+<p><strong>Move on when:</strong> the gate fails for a relevant defect, not only for a crash. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<div class="quick-check" data-check-id="w20">
+<p class="check-question">A new prompt raises mean pass@1 from 0.70 to 0.74, on twenty tasks with one trial each. Should you ship it?</p>
+<ol class="check-options">
+<li>Yes, it is an improvement.</li>
+<li data-correct>Not on this evidence: run more trials, compare pass^k per family and check that the safety metrics did not move.</li>
+<li>No, because any prompt change is risky.</li>
+</ol>
+<p class="check-explanation">With one trial per task, a difference of 0.04 is within run-to-run noise. Repeat the trials, compare families, and let the hard gates decide on safety.</p>
+</div>
+<h2 id="next-step">Next step</h2>
+<p>Run the Module 5 <a href="../resources/assessment.html">practical checkpoint</a>, then continue with <a href="module-06.html">Module 6</a>.</p>
+<h2 id="reference--concepts-used-in-the-experiments">Reference — concepts used in the experiments</h2>
+<p><strong>What to grade.</strong> Outcome graders check the end state of the environment. Trajectory graders check how the agent got there: tools used, forbidden attempts, steps. Answer graders check the final text: required facts, citations, abstention. Use code wherever the property can be checked mechanically, a model-graded rubric where it cannot (calibrated against human labels), and people for the cases where the two disagree.</p>
+<p><strong>Capability and regression suites.</strong> A capability suite contains tasks the agent cannot yet do reliably; it shows progress. A regression suite contains tasks it already does; it should stay near 100% and blocks releases. Move tasks from the first to the second as they become reliable.</p>
+<p><strong>pass@k and pass^k.</strong> With n trials of a task and c successes, an unbiased estimate of the chance that at least one of k trials passes is pass@k = 1 − C(n−c, k) / C(n, k). The chance that all k pass is pass^k = C(c, k) / C(n, k). They are equal at k = 1 and move apart as k grows: pass@k rises towards 1 if c &gt; 0, while pass^k falls towards 0 unless c = n.</p>
+<p><strong>Isolation and leakage.</strong> Each trial needs a fresh environment, or one trial's tickets and memory change the next. Split tasks by family, freeze the final split and record when it is used, as in the RAG course. A suite whose tasks the team has tuned against for months measures that tuning as much as the agent.</p>
+<h2 id="worked-example">Worked example</h2>
+<p>In the trial fixture, <em>rollback-check</em> passes three of six trials with the default graders. At k = 3, pass@3 = 1 − C(3,3)/C(6,3) = 1 − 1/20 = 0.95, and pass^3 = C(3,3)/C(6,3) = 0.05. The same data describes an agent that almost always succeeds at least once in three tries and almost never succeeds three times in a row. Turning off the step-limit grader lets trial 4 pass (four of six). Whether that is right depends on whether nine steps is acceptable for this task, which is a product decision, not a statistical one.</p>
+<h2 id="primary-references">Primary references</h2>
+<ul>
+<li>https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents</li>
+<li>https://arxiv.org/abs/2406.12045</li>
+</ul>
+</article><footer class="page-footer"><span>AI ENGINEERING LAB <span aria-hidden="true">/</span> Learn by building.</span><a href="https://github.com/nancruz/ai-engineering-lab/edit/main/docs/agents/lessons/module-05.html">Edit this HTML ↗</a></footer></main></div>
+<dialog id="search-dialog" aria-labelledby="search-title"><div class="dialog-head"><h2 id="search-title">Find your next step</h2><button class="icon-button" data-close-dialog aria-label="Close search">×</button></div><label class="sr-only" for="search-input">Search all lessons</label><input id="search-input" type="search" placeholder="Try ‘budget’, ‘week 14’ or ‘idempotency’" autocomplete="off"><div id="search-results" aria-live="polite"><p class="muted">Search lesson text, sessions, guides and workbenches.</p></div></dialog>
+<dialog id="progress-dialog" aria-labelledby="progress-title"><div class="dialog-head"><h2 id="progress-title">Your learning progress</h2><button class="icon-button" data-close-dialog aria-label="Close progress">×</button></div><p>Saved in this browser only, separately from the RAG course. Export a backup to continue on another device. This tracks your work and quick-check answers (<span data-checks-count>0</span> answered); it does not grade them.</p><p class="storage-status" role="status"></p><div class="dialog-actions"><button class="button primary" id="export-progress">Export progress</button><label class="button">Import backup<input class="sr-only" type="file" id="import-progress" accept="application/json"></label></div><p id="import-status" role="status"></p><details><summary>Reset this browser’s progress</summary><p>This cannot be undone without a backup.</p><button class="button danger" id="reset-progress">Reset saved progress</button></details></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><noscript><div class="noscript">Lesson content and links remain readable. Enable JavaScript for session controls, quick checks, search and the interactive workbenches.</div></noscript></body></html>

@@ -7,6 +7,7 @@ Hands-on AI engineering courses, written directly in **HTML**. Open [docs/index.
 | Course | Site | Lab code |
 | --- | --- | --- |
 | Retrieval-augmented generation (RAG) | `docs/rag/` | `tracks/rag/` |
+| Tool-using AI agents | `docs/agents/` | `tracks/agents/` |
 
 `docs/index.html` is the course catalog. Each course lives in its own folder under `docs/` with its own pages, assets and saved progress.
 
@@ -31,6 +32,21 @@ Edit an HTML page and refresh the browser. There is no Markdown source, generato
 
 Progress is saved in the browser and can be exported/imported. Commands still run in your development environment. Browser workbenches use the fictional development data and do not call a live model.
 
+## Edit the agents course
+
+- Lessons: `docs/agents/lessons/*.html`
+- Guides and resources: `docs/agents/guides/*.html`, `docs/agents/resources/*.html`
+- Course map: `docs/agents/index.html` and `docs/agents/course.html`
+- Interactive workbenches: `docs/agents/{loop,tools,guardrails,evals,cost}.html`
+- Shared presentation and interactions: `docs/agents/assets/style.css` and `docs/agents/assets/app.js`
+- Browser mirror of the lab (loop, validator, gate, grading): `docs/agents/assets/agentlab.js`
+- Navigation/session IDs and copies of the lab fixtures: `docs/agents/assets/course-data.js`
+- Runnable Python lab (standard library, scripted models, optional Ollama adapter): `tracks/agents/lab/`, mirrored read-only under `docs/agents/files/tracks/agents/lab/` for linking
+
+The workbenches never call a model. `tests/site/test_site.py` runs `agentlab.js` in Node and checks it returns exactly what the Python lab returns, and that `course-data.js` holds the same fixtures as `tracks/agents/lab/data/`. If you change a fixture or the lab, update the copies and run the tests.
+
+Each week ends with an ungraded quick check (`<div class="quick-check">` with one `data-correct` option). Answers are saved in the browser with session progress.
+
 ## Preview
 
 Open `docs/index.html` directly. For full-text search and normal browser storage behavior, optionally serve the folder using any static server. If Python is already installed:
@@ -51,4 +67,4 @@ Repository visibility and GitHub plan still determine whether Pages is available
 
 Three hours per week, eight modules and one evolving knowledge-assistant project. Start with evidence selection, build a real local RAG service, improve retrieval and generation, learn through practical ML experiments, then deploy and operate the service on AWS in the final 12 learning weeks. Keep completed work and continue at the next unfinished session.
 
-The RAG course map, supporting references, checkpoints and all lessons are in `docs/rag/`. Future AI tracks are added alongside it (see **Add a course**). Notion is a planning dashboard; GitHub holds the current materials.
+The RAG course map, supporting references, checkpoints and all lessons are in `docs/rag/`. The agents course (seven modules, 28 weeks, same three-hours-a-week rhythm) is in `docs/agents/` and builds an ops agent on the RAG course's fictional corpus. Future AI tracks are added alongside them (see **Add a course**). Notion is a planning dashboard; GitHub holds the current materials.

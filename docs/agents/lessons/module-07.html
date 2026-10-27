@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="description" content="Build, evaluate and operate tool-using AI agents, one evolving project at a time."><title>Module 07 — Operate agents in production · AI Engineering Lab</title><link rel="stylesheet" href="../assets/style.css"><script defer src="../assets/course-data.js"></script><script defer src="../assets/agentlab.js"></script><script defer src="../assets/app.js"></script></head>
+<body data-page="lessons/module-07.html" data-module="7"><a class="skip-link" href="#main">Skip to lesson</a><aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-icon">ai<span>_</span></span><span>ENGINEERING LAB<small>AGENTS / LEARNING TRACK</small></span></a>
+    <nav aria-label="Course"><a class="nav-home" href="../../index.html">← &nbsp; All courses</a><a class="nav-home" href="../index.html">◈ &nbsp; Learning path</a><a class="nav-home" href="../lessons/introduction.html">↳ &nbsp; Start with agents</a><p class="nav-label">YOUR BUILD SEQUENCE</p><a class="module-link" href="../lessons/module-01.html"><span class="module-num">01</span><span>The agent loop<small>Loop · 4 weeks</small></span><span class="module-progress" data-module-progress="1"></span></a><a class="module-link" href="../lessons/module-02.html"><span class="module-num">02</span><span>Tools &amp; MCP<small>Tools · 4 weeks</small></span><span class="module-progress" data-module-progress="2"></span></a><a class="module-link" href="../lessons/module-03.html"><span class="module-num">03</span><span>Context &amp; memory<small>Context · 4 weeks</small></span><span class="module-progress" data-module-progress="3"></span></a><a class="module-link" href="../lessons/module-04.html"><span class="module-num">04</span><span>Guardrails &amp; approval<small>Guard · 4 weeks</small></span><span class="module-progress" data-module-progress="4"></span></a><a class="module-link" href="../lessons/module-05.html"><span class="module-num">05</span><span>Evaluating agents<small>Evaluate · 4 weeks</small></span><span class="module-progress" data-module-progress="5"></span></a><a class="module-link" href="../lessons/module-06.html"><span class="module-num">06</span><span>Multi-agent &amp; frameworks<small>Orchestrate · 4 weeks</small></span><span class="module-progress" data-module-progress="6"></span></a><a class="module-link" href="../lessons/module-07.html" aria-current="page"><span class="module-num">07</span><span>Agents in production<small>Operate · 4 weeks</small></span><span class="module-progress" data-module-progress="7"></span></a><p class="nav-label">AT YOUR WORKBENCH</p><a class="nav-home" href="../loop.html">↻ &nbsp; Agent loop</a><a class="nav-home" href="../tools.html">{ } &nbsp; Tool contracts</a><a class="nav-home" href="../guardrails.html">⛨ &nbsp; Action gate</a><a class="nav-home" href="../evals.html">✓ &nbsp; Trial grader</a><a class="nav-home" href="../cost.html">$ &nbsp; Cost &amp; context</a><p class="nav-label">REFERENCE</p><a class="nav-home" href="../guides/project-contract.html">⌂ &nbsp; Project contract</a><a class="nav-home" href="../guides/first-model.html">◇ &nbsp; Connect a real model</a><a class="nav-home" href="../resources/lab.html">▸ &nbsp; Lab commands</a><a class="nav-home" href="../resources/assessment.html">⚑ &nbsp; Practical checkpoints</a><a class="nav-home" href="../course.html">≡ &nbsp; Full course guide</a></nav>
+    <div class="sidebar-bottom"><div class="progress-caption"><span>Sessions completed</span><strong data-progress-count>0 / 84</strong></div><progress max="84" value="0" data-global-progress aria-label="Completed learning sessions"></progress><button class="text-button" data-open-progress>Progress &amp; backup ↗</button><p>3 HOURS / WEEK · YOUR OWN PACE</p></div></aside><div class="app-shell"><header class="topbar"><button class="icon-button mobile-menu" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar" id="menu-toggle">☰</button><a class="breadcrumb" href="../index.html">Agents <span>/</span> Module 7</a><div class="topbar-actions"><button class="search-button" data-search-open><span>⌕</span> Search the course <kbd>/</kbd></button><button class="icon-button" aria-label="Print this page" data-print>↗</button></div></header>
+<main id="main" tabindex="-1"><div class="lesson-heading"><p class="eyebrow">MODULE 07 / OPERATE</p><div class="lesson-tools"><button class="text-button" data-expand-all>Expand all</button><button class="text-button" data-collapse-all>Focus view</button></div></div><nav class="week-nav" aria-label="Weeks in this module"><a href="#week-25--trace-every-model-and-tool-call">25<span>Trace every model and tool call</span></a><a href="#week-26--cut-cost-and-latency-with-evidence">26<span>Cut cost and latency with evidence</span></a><a href="#week-27--recover-from-failures-without-side-effects">27<span>Recover from failures without side effects</span></a><a href="#week-28--ship-a-supervised-pilot">28<span>Ship a supervised pilot</span></a></nav><article class="lesson-content"><h1 id="module-07--operate-agents-in-production">Module 07 — Operate agents in production</h1>
+<p>Weeks 25–28 · 3 hours per week · one evolving ops-agent project.</p>
+<h2 id="start-here">Start here</h2>
+<p>The last four weeks turn the agent into something a team could rely on: every call traced, cost and latency managed with evidence, failures that end safely, and a supervised pilot with a kill switch and a rollback path.</p>
+<p><strong>Working result:</strong> A deployed, authenticated agent service in approval-only mode, with traces, a cost and reliability dashboard, tested recovery from faults, a kill switch and a pilot hand-off document.</p>
+<figure class="figure"><svg viewBox="0 0 780 270" role="img" aria-label="An authenticated request reaches the agent service. The loop calls the model provider and MCP tools. Side effects pass through the action gate to an approval queue. All spans go to a trace collector."><defs><marker id="arr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7" fill="#9d95c9"/></marker></defs>
+<g class="arrow" marker-end="url(#arr)"><path d="M140 70H200"/><path d="M370 55H450"/><path d="M370 85H450"/><path d="M290 110V160"/><path d="M370 190H450"/><path d="M290 225V240H600V215"/></g>
+<rect class="node" x="10" y="45" width="130" height="50" rx="8"/><text x="75" y="67" text-anchor="middle">Request</text><text class="small" x="75" y="83" text-anchor="middle">HTTPS + identity</text>
+<rect class="node accent" x="200" y="35" width="170" height="75" rx="8"/><text x="285" y="62" text-anchor="middle">Agent service</text><text class="small" x="285" y="80" text-anchor="middle">loop · budgets · state</text><text class="small" x="285" y="96" text-anchor="middle">config + release manifest</text>
+<rect class="node" x="450" y="30" width="150" height="40" rx="8"/><text x="525" y="55" text-anchor="middle">Model provider</text>
+<rect class="node" x="450" y="78" width="150" height="40" rx="8"/><text x="525" y="103" text-anchor="middle">MCP tools (read)</text>
+<rect class="node guard" x="200" y="160" width="170" height="65" rx="8"/><text x="285" y="187" text-anchor="middle">Action gate</text><text class="small" x="285" y="205" text-anchor="middle">authz · approval · egress · taint</text>
+<rect class="node" x="450" y="165" width="150" height="50" rx="8"/><text x="525" y="187" text-anchor="middle">Approval queue</text><text class="small" x="525" y="203" text-anchor="middle">person decides</text>
+<rect class="node risk" x="640" y="30" width="130" height="50" rx="8"/><text x="705" y="52" text-anchor="middle">Kill switch</text><text class="small" x="705" y="68" text-anchor="middle">disables side effects</text>
+<rect class="node" x="640" y="165" width="130" height="50" rx="8"/><text x="705" y="187" text-anchor="middle">Trace collector</text><text class="small" x="705" y="203" text-anchor="middle">spans · cost · gate</text>
+</svg><figcaption>The pilot you build in week 28. Read tools are served over MCP; every side effect passes through your gate and a person.</figcaption></figure>
+<p>Read only the current week's instructions. Use the reference section when a step points to a concept. Show progress with working code, saved runs, tests and short notes attached to a change. Quick checks are for you and are never graded.</p>
+<p>All shell commands start at the repository root. Paths beginning with <code>app/</code>, <code>configs/</code>, <code>data/</code>, <code>tests/</code>, <code>infra/</code> or <code>artifacts/</code> mean files inside <code>projects/ops-agent/</code>.</p>
+<h2 id="week-25--trace-every-model-and-tool-call">Week 25 — Trace every model and tool call</h2>
+<p>Make every run explainable from its trace alone.</p>
+<h3 id="session-a--start-and-inspect-60-minutes">Session A — Start and inspect (60 minutes)</h3>
+<p>Read the OpenTelemetry semantic conventions for generative AI agent spans (see references): a root span per agent invocation, a span per model call with model and token attributes, and a span per tool execution with the tool name. They are still marked as in development, so pin the version you follow. Decide what content you will record: prompts and tool arguments can contain sensitive data, so make capture opt-in and redact it.</p>
+<h3 id="session-b--build-or-change-60-minutes">Session B — Build or change (60 minutes)</h3>
+<p>Write <code>app/tracing.py</code> with the OpenTelemetry SDK (pin it). Emit spans for the run, each model call and each tool call, with tokens, stop reason, gate decision, taint and run ID as attributes. Export to a local file or console first; optionally run a local trace viewer in a container. Put the trace ID in every trajectory line so the two records link up.</p>
+<h3 id="session-c--run-and-verify-60-minutes">Session C — Run and verify (60 minutes)</h3>
+<p>Trace a full <em>rollback-check</em> including the approval pause and resume, linked by run ID. From the trace alone, find the slowest span and the most expensive model call. Add a test that a credential-like string in tool arguments is redacted before export.</p>
+<p><strong>Save:</strong> Tracing module, one linked trace across a pause, and the redaction test.</p>
+<p><strong>Move on when:</strong> you can explain a run's cost and latency without opening its trajectory file. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<div class="quick-check" data-check-id="w25">
+<p class="check-question">The service returned HTTP 200 and the trace shows no errors, but the answer was wrong. What does that tell you?</p>
+<ol class="check-options">
+<li>The model provider had an outage.</li>
+<li data-correct>Traces show what happened, not whether it was right. You need quality signals as well: online checks and sampled grading of real runs.</li>
+<li>The trace sampler dropped the error.</li>
+</ol>
+<p class="check-explanation">Agents fail semantically while every call succeeds. Run your end-state checks online where you can, and grade a sample of production runs with the same graders as Module 5.</p>
+</div>
+<h2 id="week-26--cut-cost-and-latency-with-evidence">Week 26 — Cut cost and latency with evidence</h2>
+<p>Change one lever at a time and keep only what the suite supports.</p>
+<h3 id="session-a--start-and-inspect-60-minutes_1">Session A — Start and inspect (60 minutes)</h3>
+<p>In the <a href="../cost.html">cost workbench</a>, try routing a share of tasks to a smaller model with and without escalation, and try compaction and caching. Then compute your own baseline from week 25 traces: cost per successful task and p50/p95 latency per task family.</p>
+<h3 id="session-b--build-or-change-60-minutes_1">Session B — Build or change (60 minutes)</h3>
+<p>Implement two levers behind configuration switches. Candidates: prompt caching (stable content first, if your provider supports it), tighter tool-output caps, routing easy families to a smaller model with escalation when end-state checks fail, and running independent read-only tool calls in parallel.</p>
+<h3 id="session-c--run-and-verify-60-minutes_1">Session C — Run and verify (60 minutes)</h3>
+<p>For each lever, run the eval suite with three trials and record cost per success, pass^3 per family and p95 latency. Keep a lever only if it improves cost or latency and the release gate still passes.</p>
+<p><strong>Save:</strong> Lever implementations, per-lever measurements and the configuration you keep.</p>
+<p><strong>Move on when:</strong> each kept change has a before/after measurement on the same suite. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<div class="quick-check" data-check-id="w26">
+<p class="check-question">Routing to a smaller model halves cost per task, but success drops from 0.9 to 0.6 with no escalation. Cost per success still falls (0.5/0.6 ≈ 0.83 against 1/0.9 ≈ 1.11). What else must you check?</p>
+<ol class="check-options">
+<li>Nothing: cost per success is the right single metric.</li>
+<li data-correct>That four in ten tasks now fail for users. Can failures be detected and escalated, and what does a failure cost the team?</li>
+<li>Whether the smaller model is newer.</li>
+</ol>
+<p class="check-explanation">Cost per success ignores the cost of failures. With escalation on detected failures, routing can save money without users seeing more failures. Try both in the workbench.</p>
+</div>
+<h2 id="week-27--recover-from-failures-without-side-effects">Week 27 — Recover from failures without side effects</h2>
+<p>Make every failure end in a known state.</p>
+<h3 id="session-a--start-and-inspect-60-minutes_2">Session A — Start and inspect (60 minutes)</h3>
+<p>List the failure modes and the behaviour you want for each: model API rate limits, errors and timeouts; a tool outage; malformed model output; budget exhaustion; a crash mid-run; and a bad prompt release.</p>
+<h3 id="session-b--build-or-change-60-minutes_2">Session B — Build or change (60 minutes)</h3>
+<p>Implement: retries with jittered backoff for model calls; a fallback model, recorded in the trace; a circuit breaker that makes a failing tool return a clear “unavailable” error; a kill switch in configuration that makes the gate refuse every side effect immediately; and per-run time limits that end in a partial result.</p>
+<h3 id="session-c--run-and-verify-60-minutes_2">Session C — Run and verify (60 minutes)</h3>
+<p>Write fault-injection tests with a fake provider and fake tools. For each fault, assert that the run ends with a known stop reason, no side effect is duplicated and the user receives a partial result that says what is missing. Flip the kill switch in the middle of a run and assert that pending side effects are refused.</p>
+<p><strong>Save:</strong> Recovery mechanisms and the fault-injection test suite.</p>
+<p><strong>Move on when:</strong> every listed fault has a test, and none can produce a duplicate or unapproved side effect. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<div class="quick-check" data-check-id="w27">
+<p class="check-question">The model provider is unavailable for ten minutes during an incident. What should the agent do?</p>
+<ol class="check-options">
+<li>Retry until the provider recovers.</li>
+<li data-correct>Try the fallback; if that fails too, return what it has gathered, hand over to a person and keep its state so the run can resume.</li>
+<li>Answer from cached earlier responses.</li>
+</ol>
+<p class="check-explanation">During an incident, a fast and honest partial result is worth more than a silent retry loop. Saved state means no work is lost when the provider returns.</p>
+</div>
+<h2 id="week-28--ship-a-supervised-pilot">Week 28 — Ship a supervised pilot</h2>
+<p>Put the agent in front of real use, with tight limits and a way back.</p>
+<h3 id="session-a--start-and-inspect-60-minutes_3">Session A — Start and inspect (60 minutes)</h3>
+<p>Write the pilot plan: who uses it, which task families are on, and that the agent may only read and draft, with every side effect requiring approval. Add success criteria, stop criteria and an on-call runbook. Choose the deployment: a local service, or the AWS environment from RAG Module 7 if you built it (container, authentication, secrets).</p>
+<h3 id="session-b--build-or-change-60-minutes_3">Session B — Build or change (60 minutes)</h3>
+<p>Deploy behind authentication. Write a release manifest (model IDs, prompt versions, tool versions, gate policy, configuration hash) to <code>artifacts/releases/&lt;release-id&gt;/manifest.json</code>. Build a small dashboard from traces: tasks per day, online check pass rate, cost per success, approvals requested and granted, gate blocks and taint holds.</p>
+<h3 id="session-c--run-and-verify-60-minutes_3">Session C — Run and verify (60 minutes)</h3>
+<p>Run twenty tasks through the deployed service. Practise three drills: flip the kill switch; roll back to the previous release manifest; resume a paused run after a redeploy. Write <code>artifacts/pilot/handoff.md</code> with results, residual risks and what you would allow the agent to do next, given evidence.</p>
+<p><strong>Save:</strong> Deployment, release manifest, dashboard, drill results and the hand-off document.</p>
+<p><strong>Move on when:</strong> another engineer could operate the pilot from your runbook and hand-off alone. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<div class="quick-check" data-check-id="w28">
+<p class="check-question">In the pilot, what should the agent be allowed to do without a person?</p>
+<ol class="check-options">
+<li>Anything the policy documents allow.</li>
+<li data-correct>Read and draft. Every side effect waits for an approval bound to its exact fields.</li>
+<li>Create low-severity tickets only.</li>
+</ol>
+<p class="check-explanation">Start with the least autonomy that still saves time, then widen it one task family at a time when the evidence supports it. Each widening is a release that goes through the gate.</p>
+</div>
+<h2 id="next-step">Next step</h2>
+<p>Complete the final <a href="../resources/assessment.html">practical checkpoint</a>. Your repository now contains a portfolio piece: an agent with tools, MCP, guardrails, evaluation and operations, plus the decision records that explain it.</p>
+<h2 id="reference--concepts-used-in-the-experiments">Reference — concepts used in the experiments</h2>
+<p><strong>Agent telemetry.</strong> The OpenTelemetry generative AI conventions define an agent invocation span, model-call spans (model, provider, input and output tokens, finish reason) and tool-execution spans (tool name, call ID). Message content and tool arguments are not captured by default because they often contain personal or secret data. Following the conventions lets any compatible backend read your traces.</p>
+<p><strong>Cost and latency levers.</strong> Input tokens dominate most agent bills, so the main levers are shorter tool outputs, compaction, caching a stable prefix, fewer turns (better tools, better stop rules) and routing work to smaller models where checks show they succeed. For latency: parallel independent calls, streaming the final answer and avoiding needless turns.</p>
+<p><strong>Reliability patterns.</strong> Retries with backoff and jitter only for retryable errors; idempotency keys for anything with an effect; circuit breakers so a failing dependency fails fast; fallbacks recorded in traces; a kill switch outside the model's reach; time limits that end in an honest partial result.</p>
+<p><strong>Rolling out autonomy.</strong> Common stages are shadow mode (the agent runs, people act), approval-only (the agent drafts, people approve), then autonomous for specific low-risk families with monitoring and a rollback path. Each step is justified by evaluation results and pilot data, not by a demo.</p>
+<h2 id="worked-example">Worked example</h2>
+<p>Take the routing question from week 26. Suppose the large model costs 1 unit per task with 0.9 success, and the small model 0.5 units with 0.6 success. Routing everything small costs about 0.83 per success instead of 1.11, but 40% of tasks fail. With escalation (the large model retries detected failures), cost per task becomes 0.5 + 0.4 × 1 = 0.9 and success becomes 0.6 + 0.4 × 0.9 = 0.96, so cost per success is about 0.94. That is cheaper than large-only, with fewer failures, <em>if</em> your end-state checks can detect the failures. The <a href="../cost.html">cost workbench</a> computes this from token counts.</p>
+<h2 id="primary-references">Primary references</h2>
+<ul>
+<li>https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-agent-spans/</li>
+<li>https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents</li>
+<li>https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents</li>
+</ul>
+</article><footer class="page-footer"><span>AI ENGINEERING LAB <span aria-hidden="true">/</span> Learn by building.</span><a href="https://github.com/nancruz/ai-engineering-lab/edit/main/docs/agents/lessons/module-07.html">Edit this HTML ↗</a></footer></main></div>
+<dialog id="search-dialog" aria-labelledby="search-title"><div class="dialog-head"><h2 id="search-title">Find your next step</h2><button class="icon-button" data-close-dialog aria-label="Close search">×</button></div><label class="sr-only" for="search-input">Search all lessons</label><input id="search-input" type="search" placeholder="Try ‘budget’, ‘week 14’ or ‘idempotency’" autocomplete="off"><div id="search-results" aria-live="polite"><p class="muted">Search lesson text, sessions, guides and workbenches.</p></div></dialog>
+<dialog id="progress-dialog" aria-labelledby="progress-title"><div class="dialog-head"><h2 id="progress-title">Your learning progress</h2><button class="icon-button" data-close-dialog aria-label="Close progress">×</button></div><p>Saved in this browser only, separately from the RAG course. Export a backup to continue on another device. This tracks your work and quick-check answers (<span data-checks-count>0</span> answered); it does not grade them.</p><p class="storage-status" role="status"></p><div class="dialog-actions"><button class="button primary" id="export-progress">Export progress</button><label class="button">Import backup<input class="sr-only" type="file" id="import-progress" accept="application/json"></label></div><p id="import-status" role="status"></p><details><summary>Reset this browser’s progress</summary><p>This cannot be undone without a backup.</p><button class="button danger" id="reset-progress">Reset saved progress</button></details></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><noscript><div class="noscript">Lesson content and links remain readable. Enable JavaScript for session controls, quick checks, search and the interactive workbenches.</div></noscript></body></html>
