@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="description" content="Build, evaluate and operate tool-using AI agents, one evolving project at a time."><title>Module 02 — Design tools and serve them over MCP · AI Engineering Lab</title><link rel="stylesheet" href="../assets/style.css"><script defer src="../assets/course-data.js"></script><script defer src="../assets/agentlab.js"></script><script defer src="../assets/app.js"></script></head>
+<body data-page="lessons/module-02.html" data-module="2"><a class="skip-link" href="#main">Skip to lesson</a><aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-icon">ai<span>_</span></span><span>ENGINEERING LAB<small>AGENTS / LEARNING TRACK</small></span></a>
+    <nav aria-label="Course"><a class="nav-home" href="../../index.html">← &nbsp; All courses</a><a class="nav-home" href="../index.html">◈ &nbsp; Learning path</a><a class="nav-home" href="../lessons/introduction.html">↳ &nbsp; Start with agents</a><p class="nav-label">YOUR BUILD SEQUENCE</p><a class="module-link" href="../lessons/module-01.html"><span class="module-num">01</span><span>The agent loop<small>Loop · 4 weeks</small></span><span class="module-progress" data-module-progress="1"></span></a><a class="module-link" href="../lessons/module-02.html" aria-current="page"><span class="module-num">02</span><span>Tools &amp; MCP<small>Tools · 4 weeks</small></span><span class="module-progress" data-module-progress="2"></span></a><a class="module-link" href="../lessons/module-03.html"><span class="module-num">03</span><span>Context &amp; memory<small>Context · 4 weeks</small></span><span class="module-progress" data-module-progress="3"></span></a><a class="module-link" href="../lessons/module-04.html"><span class="module-num">04</span><span>Guardrails &amp; approval<small>Guard · 4 weeks</small></span><span class="module-progress" data-module-progress="4"></span></a><a class="module-link" href="../lessons/module-05.html"><span class="module-num">05</span><span>Evaluating agents<small>Evaluate · 4 weeks</small></span><span class="module-progress" data-module-progress="5"></span></a><a class="module-link" href="../lessons/module-06.html"><span class="module-num">06</span><span>Multi-agent &amp; frameworks<small>Orchestrate · 4 weeks</small></span><span class="module-progress" data-module-progress="6"></span></a><a class="module-link" href="../lessons/module-07.html"><span class="module-num">07</span><span>Agents in production<small>Operate · 4 weeks</small></span><span class="module-progress" data-module-progress="7"></span></a><p class="nav-label">AT YOUR WORKBENCH</p><a class="nav-home" href="../loop.html">↻ &nbsp; Agent loop</a><a class="nav-home" href="../tools.html">{ } &nbsp; Tool contracts</a><a class="nav-home" href="../guardrails.html">⛨ &nbsp; Action gate</a><a class="nav-home" href="../evals.html">✓ &nbsp; Trial grader</a><a class="nav-home" href="../cost.html">$ &nbsp; Cost &amp; context</a><p class="nav-label">REFERENCE</p><a class="nav-home" href="../guides/project-contract.html">⌂ &nbsp; Project contract</a><a class="nav-home" href="../guides/first-model.html">◇ &nbsp; Connect a real model</a><a class="nav-home" href="../resources/lab.html">▸ &nbsp; Lab commands</a><a class="nav-home" href="../resources/assessment.html">⚑ &nbsp; Practical checkpoints</a><a class="nav-home" href="../course.html">≡ &nbsp; Full course guide</a></nav>
+    <div class="sidebar-bottom"><div class="progress-caption"><span>Sessions completed</span><strong data-progress-count>0 / 84</strong></div><progress max="84" value="0" data-global-progress aria-label="Completed learning sessions"></progress><button class="text-button" data-open-progress>Progress &amp; backup ↗</button><p>3 HOURS / WEEK · YOUR OWN PACE</p></div></aside><div class="app-shell"><header class="topbar"><button class="icon-button mobile-menu" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar" id="menu-toggle">☰</button><a class="breadcrumb" href="../index.html">Agents <span>/</span> Module 2</a><div class="topbar-actions"><button class="search-button" data-search-open><span>⌕</span> Search the course <kbd>/</kbd></button><button class="icon-button" aria-label="Print this page" data-print>↗</button></div></header>
+<main id="main" tabindex="-1"><div class="lesson-heading"><p class="eyebrow">MODULE 02 / TOOLS</p><div class="lesson-tools"><button class="text-button" data-expand-all>Expand all</button><button class="text-button" data-collapse-all>Focus view</button></div></div><nav class="week-nav" aria-label="Weeks in this module"><a href="#week-05--design-tool-contracts-the-model-can-follow">5<span>Design tool contracts the model can follow</span></a><a href="#week-06--turn-your-retriever-into-a-tool">6<span>Turn your retriever into a tool</span></a><a href="#week-07--serve-your-tools-over-mcp">7<span>Serve your tools over MCP</span></a><a href="#week-08--make-side-effects-safe-to-retry">8<span>Make side effects safe to retry</span></a></nav><article class="lesson-content"><h1 id="module-02--design-tools-and-serve-them-over-mcp">Module 02 — Design tools and serve them over MCP</h1>
+<p>Weeks 5–8 · 3 hours per week · one evolving ops-agent project.</p>
+<h2 id="start-here">Start here</h2>
+<p>A model can only be as good as the tools it is given. In this module you replace the lab's tools with your own: clear contracts, validated arguments, structured errors, your retriever as a tool, an MCP server, and side effects that are safe to retry.</p>
+<p><strong>Working result:</strong> A small tool set with tested contracts, served over MCP to your loop, where every error is structured and no retry can create a duplicate side effect.</p>
+<p>Read only the current week's instructions. Use the reference section when a step points to a concept. Show progress with working code, saved runs, tests and short notes attached to a change. Quick checks are for you and are never graded.</p>
+<p>All shell commands start at the repository root. Paths beginning with <code>app/</code>, <code>configs/</code>, <code>data/</code>, <code>tests/</code> or <code>artifacts/</code> mean files inside <code>projects/ops-agent/</code>. See the <a href="../guides/project-contract.html">project contract</a> for the tool interface and error codes.</p>
+<h2 id="week-05--design-tool-contracts-the-model-can-follow">Week 05 — Design tool contracts the model can follow</h2>
+<p>Write tools the model can choose correctly and call correctly.</p>
+<h3 id="session-a--start-and-inspect-60-minutes">Session A — Start and inspect (60 minutes)</h3>
+<p>Open the <a href="../tools.html">tool contract workbench</a>. For each of the five tools, load every argument preset and read the exact error the model would receive. Edit a description to remove “Use before…” and watch the review notes change. Then read <a href="../files/tracks/agents/lab/data/tools.json">tools.json</a> and, for each tool, write one line each for: when to use it, when not to, what it returns and how large the result can be.</p>
+<h3 id="session-b--build-or-change-60-minutes">Session B — Build or change (60 minutes)</h3>
+<p>Create one module per tool in <code>app/tools/</code>, each exporting <code>name</code>, <code>description</code>, <code>input_schema</code>, <code>side_effect</code>, <code>approver_roles</code>, <code>timeout_s</code> and <code>run(args, ctx)</code>. Validate arguments before <code>run</code> with the lab's <a href="../files/tracks/agents/lab/schema.py">schema.py</a> or a JSON Schema library (pin its version). Return the contract's error envelope with a fixed code: <code>invalid_arguments</code>, <code>not_found</code>, <code>forbidden</code>, <code>approval_required</code>, <code>timeout</code>, <code>rate_limited</code> or <code>upstream_error</code>. Keep usage guidance in the tool description, not in the system prompt.</p>
+<h3 id="session-c--run-and-verify-60-minutes">Session C — Run and verify (60 minutes)</h3>
+<p>Run ten real-model tasks and count invalid calls (unknown tool, schema errors). Improve the descriptions that caused them: add enums, examples of valid values and when-not-to-use lines. Run the same ten tasks again. Keep a change only if invalid calls drop without lowering task success. Add tests asserting that each “should fail” preset from the workbench is rejected with the expected path.</p>
+<p><strong>Save:</strong> Tool modules, validation tests and the before/after invalid-call counts.</p>
+<p><strong>Move on when:</strong> every error the model can receive is structured and covered by a test. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<div class="quick-check" data-check-id="w05">
+<p class="check-question">The model calls <code>get_error_ratio</code> with <code>"minutes": "10"</code> (a string). What is the most useful response?</p>
+<ol class="check-options">
+<li>Convert it to 10 silently and run the tool.</li>
+<li data-correct>Return <code>invalid_arguments</code> with the path and problem, so the model can correct the call and you can count the error.</li>
+<li>Raise an exception and end the run.</li>
+</ol>
+<p class="check-explanation">A structured error lets the model fix the call on the next turn and gives you a number to improve. Silent coercion hides a contract problem; crashing turns a recoverable mistake into a failed task. You can still decide later to coerce specific harmless cases, deliberately and logged.</p>
+</div>
+<h2 id="week-06--turn-your-retriever-into-a-tool">Week 06 — Turn your retriever into a tool</h2>
+<p>Give the agent evidence through the same retrieval rules as your RAG service.</p>
+<h3 id="session-a--start-and-inspect-60-minutes_1">Session A — Start and inspect (60 minutes)</h3>
+<p>Run <code>search_knowledge</code> in the workbench with the “Restricted value” and “Returns untrusted content” presets. Note what the result contains (IDs for citations, status, a trust label, text) and what it leaves out (scores, archived versions). Estimate the tokens one result adds to every later turn.</p>
+<h3 id="session-b--build-or-change-60-minutes_1">Session B — Build or change (60 minutes)</h3>
+<p>Write <code>app/tools/search_knowledge.py</code> around your RAG retriever (<code>projects/knowledge-assistant/</code> if you built it, otherwise <code>tracks/rag/lab/retrieval.py</code>). Take the caller's role and the current-only rule from the run context, never from model arguments. Cap the output: at most five sources, each text truncated to a fixed length with <code>"truncated": true</code>. Label imported sources <code>trust: "untrusted"</code>. When nothing matches, return a message that says what was searched, which helps the model abstain.</p>
+<h3 id="session-c--run-and-verify-60-minutes_1">Session C — Run and verify (60 minutes)</h3>
+<p>Add tests: an engineer never receives <code>capacity-private</code>, an admin does, the injection note is labelled untrusted, output size stays under the cap and empty results return the explanatory message. Run <em>credential-policy</em> and <em>orion</em> with the real model and compare them with week 2.</p>
+<p><strong>Save:</strong> Retrieval tool, authorization and size tests, two comparison runs.</p>
+<p><strong>Move on when:</strong> authorization tests pass with the role coming only from the run context. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<div class="quick-check" data-check-id="w06">
+<p class="check-question">Why must the caller's role not be an argument of <code>search_knowledge</code>?</p>
+<ol class="check-options">
+<li>It would make the schema too long.</li>
+<li data-correct>The model writes the arguments, so it could pass any role, including one it was told about by injected text.</li>
+<li>Roles change too often to put in a schema.</li>
+</ol>
+<p class="check-explanation">Anything in the arguments is chosen by the model. Identity and permissions come from the authenticated request that started the run, and the tool applies them itself.</p>
+</div>
+<h2 id="week-07--serve-your-tools-over-mcp">Week 07 — Serve your tools over MCP</h2>
+<p>Expose the tools through an open protocol so any compatible client can use them.</p>
+<h3 id="session-a--start-and-inspect-60-minutes_2">Session A — Start and inspect (60 minutes)</h3>
+<p>Read the overview of the current MCP specification (see references): hosts, clients and servers; the tools, resources and prompts a server can offer; the stdio and Streamable HTTP transports; and the date-based version scheme. Create a virtual environment, install the official Python SDK and record the exact version you installed. Run the supplied reference server under the MCP Inspector:</p>
+<pre><code class="language-bash">python3 -m pip install "mcp[cli]"
+python3 -m pip show mcp            # record this version and pin it
+npx @modelcontextprotocol/inspector python3 tracks/agents/lab/mcp_server.py</code></pre>
+<p>List the tools, call each with valid and invalid arguments and compare the errors with direct calls.</p>
+<h3 id="session-b--build-or-change-60-minutes_2">Session B — Build or change (60 minutes)</h3>
+<p>Write <code>mcp_server.py</code> in your project, exposing only the read-only tools with the same descriptions and schemas as <code>app/tools/</code>. Log to stderr: stdout carries protocol messages on stdio. Change your loop so it lists tools from the server through the SDK's client and calls them over MCP instead of importing them. Use the client example from the SDK documentation for the version you pinned.</p>
+<h3 id="session-c--run-and-verify-60-minutes_2">Session C — Run and verify (60 minutes)</h3>
+<p>Add a test that compares the tool names and input schemas listed over MCP with your local registry. Run <em>credential-policy</em> end to end through MCP. If you already use an MCP-capable desktop or coding assistant, connect it to the same server and call one tool from it.</p>
+<p><strong>Save:</strong> MCP server, pinned SDK version, registry-parity test, one MCP-backed trajectory.</p>
+<p><strong>Move on when:</strong> your loop completes a task using tools it discovered over MCP. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<div class="quick-check" data-check-id="w07">
+<p class="check-question">Why keep <code>create_ticket</code> and <code>rollback</code> out of your MCP server for now?</p>
+<ol class="check-options">
+<li>MCP cannot describe tools with side effects.</li>
+<li data-correct>Any connected client could call them, bypassing the approval gate that lives in your own harness.</li>
+<li>They are too slow for the stdio transport.</li>
+</ol>
+<p class="check-explanation">MCP can expose any tool. Exposing a side-effecting tool means the server itself must authenticate the caller and enforce approval, because you no longer control which client calls it. Module 4 builds that gate first.</p>
+</div>
+<h2 id="week-08--make-side-effects-safe-to-retry">Week 08 — Make side effects safe to retry</h2>
+<p>A retried request must never create a second ticket.</p>
+<h3 id="session-a--start-and-inspect-60-minutes_3">Session A — Start and inspect (60 minutes)</h3>
+<p>In the <a href="../guardrails.html">action gate workbench</a>, untick “Idempotency keys” and look at “Retry after a timeout”. Then write <code>app/tools/tracker.py</code>: a fictional ticket store with a fault mode that creates the ticket and then times out before replying.</p>
+<h3 id="session-b--build-or-change-60-minutes_3">Session B — Build or change (60 minutes)</h3>
+<p>Make <code>create_ticket</code> require an <code>idempotency_key</code>. Store each key with its fields and result. A repeat with the same key and fields returns the saved result; the same key with different fields returns a <code>conflict</code> error. Classify errors as retryable (<code>timeout</code>, <code>rate_limited</code>, upstream 5xx) or not, and let the harness retry only retryable errors, with backoff and a cap.</p>
+<h3 id="session-c--run-and-verify-60-minutes_3">Session C — Run and verify (60 minutes)</h3>
+<p>Tests: create-then-timeout followed by a retry leaves exactly one ticket; same key with changed fields returns <code>conflict</code>; the harness never retries <code>invalid_arguments</code> or <code>approval_required</code>; backoff uses an injectable clock so the test runs instantly.</p>
+<p><strong>Save:</strong> Tracker, idempotent create, retry policy and the duplicate-prevention tests.</p>
+<p><strong>Move on when:</strong> no sequence of retries in your tests produces a second side effect. If the hour ends first, keep your current work and resume the unfinished step next session.</p>
+<div class="quick-check" data-check-id="w08">
+<p class="check-question">The tracker times out after creating a ticket, and the harness retries with a <em>new</em> idempotency key. What happens?</p>
+<ol class="check-options">
+<li>The tracker recognises the retry and returns the first ticket.</li>
+<li data-correct>A duplicate ticket is created.</li>
+<li>The retry fails validation.</li>
+</ol>
+<p class="check-explanation">The key is what links a retry to the original request. Generate it once per intended action, before the first attempt, and reuse it for every retry.</p>
+</div>
+<h2 id="next-step">Next step</h2>
+<p>Run the Module 2 <a href="../resources/assessment.html">practical checkpoint</a>, then continue with <a href="module-03.html">Module 3</a>.</p>
+<h2 id="reference--concepts-used-in-the-experiments">Reference — concepts used in the experiments</h2>
+<p><strong>Tool design.</strong> A few targeted tools for real workflows usually beat one tool per API endpoint. Give similar tools distinct, namespaced names. Return only what the model needs to decide the next step, with IDs it can cite, and keep results short because every result is re-read on every later turn. Errors should say what was wrong and how to fix it. Descriptions are prompts: test changes to them like any other prompt change.</p>
+<p><strong>Schemas.</strong> JSON Schema describes argument types, required fields, enums, lengths and patterns. Set <code>additionalProperties: false</code> so invented arguments are rejected. Some providers offer a strict mode that constrains generation to the schema; still validate on your side, because schema-valid is not the same as allowed. An invented <code>approval_id</code> can match the pattern and still have no approval behind it.</p>
+<p><strong>MCP.</strong> The Model Context Protocol separates a <em>host</em> application (with one or more clients) from <em>servers</em> that offer tools (called by the model), resources (data the application chooses to load) and prompts (templates a user picks). Versions are dates; the specification revision current at the time of writing is 2026-07-28, which made requests self-contained instead of relying on a session handshake. SDKs lag and lead the specification at different times, so pin the SDK version and read its changelog before upgrading.</p>
+<p><strong>Idempotency.</strong> An operation is idempotent if repeating it has the same effect as doing it once. Networks make “did it happen?” unknowable after a timeout, so side-effecting tools need a client-generated key the server uses to deduplicate. Drafting first and committing later also gives a person a place to approve the exact fields.</p>
+<h2 id="worked-example">Worked example</h2>
+<p>In the workbench, the <code>rollback</code> preset “Approval from the model, not a person” sends <code>approval_id: "A-1"</code>. The schema accepts it: the pattern matches. The gate refuses it: no approval record with that ID exists. Validation answers “is this well-formed?”; authorization answers “is this allowed?”. You need both, in that order, and neither can be delegated to the model.</p>
+<h2 id="primary-references">Primary references</h2>
+<ul>
+<li>https://www.anthropic.com/engineering/writing-tools-for-agents</li>
+<li>https://modelcontextprotocol.io/specification/2026-07-28</li>
+<li>https://modelcontextprotocol.io/docs/learn/versioning</li>
+<li>https://github.com/modelcontextprotocol/python-sdk</li>
+</ul>
+</article><footer class="page-footer"><span>AI ENGINEERING LAB <span aria-hidden="true">/</span> Learn by building.</span><a href="https://github.com/nancruz/ai-engineering-lab/edit/main/docs/agents/lessons/module-02.html">Edit this HTML ↗</a></footer></main></div>
+<dialog id="search-dialog" aria-labelledby="search-title"><div class="dialog-head"><h2 id="search-title">Find your next step</h2><button class="icon-button" data-close-dialog aria-label="Close search">×</button></div><label class="sr-only" for="search-input">Search all lessons</label><input id="search-input" type="search" placeholder="Try ‘budget’, ‘week 14’ or ‘idempotency’" autocomplete="off"><div id="search-results" aria-live="polite"><p class="muted">Search lesson text, sessions, guides and workbenches.</p></div></dialog>
+<dialog id="progress-dialog" aria-labelledby="progress-title"><div class="dialog-head"><h2 id="progress-title">Your learning progress</h2><button class="icon-button" data-close-dialog aria-label="Close progress">×</button></div><p>Saved in this browser only, separately from the RAG course. Export a backup to continue on another device. This tracks your work and quick-check answers (<span data-checks-count>0</span> answered); it does not grade them.</p><p class="storage-status" role="status"></p><div class="dialog-actions"><button class="button primary" id="export-progress">Export progress</button><label class="button">Import backup<input class="sr-only" type="file" id="import-progress" accept="application/json"></label></div><p id="import-status" role="status"></p><details><summary>Reset this browser’s progress</summary><p>This cannot be undone without a backup.</p><button class="button danger" id="reset-progress">Reset saved progress</button></details></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><noscript><div class="noscript">Lesson content and links remain readable. Enable JavaScript for session controls, quick checks, search and the interactive workbenches.</div></noscript></body></html>

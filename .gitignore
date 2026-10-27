@@ -21,3 +21,6 @@ projects/knowledge-assistant/artifacts/
 projects/knowledge-assistant/data/private/
 projects/knowledge-assistant/.cache/
 projects/knowledge-assistant/models/
+projects/ops-agent/artifacts/runs/
+projects/ops-agent/artifacts/evals/
+projects/ops-agent/.cache/

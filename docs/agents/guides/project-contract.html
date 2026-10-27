@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="description" content="Build, evaluate and operate tool-using AI agents, one evolving project at a time."><title>Project contract — ops agent · AI Engineering Lab</title><link rel="stylesheet" href="../assets/style.css"><script defer src="../assets/course-data.js"></script><script defer src="../assets/agentlab.js"></script><script defer src="../assets/app.js"></script></head>
+<body data-page="guides/project-contract.html" data-module=""><a class="skip-link" href="#main">Skip to lesson</a><aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-icon">ai<span>_</span></span><span>ENGINEERING LAB<small>AGENTS / LEARNING TRACK</small></span></a>
+    <nav aria-label="Course"><a class="nav-home" href="../../index.html">← &nbsp; All courses</a><a class="nav-home" href="../index.html">◈ &nbsp; Learning path</a><a class="nav-home" href="../lessons/introduction.html">↳ &nbsp; Start with agents</a><p class="nav-label">YOUR BUILD SEQUENCE</p><a class="module-link" href="../lessons/module-01.html"><span class="module-num">01</span><span>The agent loop<small>Loop · 4 weeks</small></span><span class="module-progress" data-module-progress="1"></span></a><a class="module-link" href="../lessons/module-02.html"><span class="module-num">02</span><span>Tools &amp; MCP<small>Tools · 4 weeks</small></span><span class="module-progress" data-module-progress="2"></span></a><a class="module-link" href="../lessons/module-03.html"><span class="module-num">03</span><span>Context &amp; memory<small>Context · 4 weeks</small></span><span class="module-progress" data-module-progress="3"></span></a><a class="module-link" href="../lessons/module-04.html"><span class="module-num">04</span><span>Guardrails &amp; approval<small>Guard · 4 weeks</small></span><span class="module-progress" data-module-progress="4"></span></a><a class="module-link" href="../lessons/module-05.html"><span class="module-num">05</span><span>Evaluating agents<small>Evaluate · 4 weeks</small></span><span class="module-progress" data-module-progress="5"></span></a><a class="module-link" href="../lessons/module-06.html"><span class="module-num">06</span><span>Multi-agent &amp; frameworks<small>Orchestrate · 4 weeks</small></span><span class="module-progress" data-module-progress="6"></span></a><a class="module-link" href="../lessons/module-07.html"><span class="module-num">07</span><span>Agents in production<small>Operate · 4 weeks</small></span><span class="module-progress" data-module-progress="7"></span></a><p class="nav-label">AT YOUR WORKBENCH</p><a class="nav-home" href="../loop.html">↻ &nbsp; Agent loop</a><a class="nav-home" href="../tools.html">{ } &nbsp; Tool contracts</a><a class="nav-home" href="../guardrails.html">⛨ &nbsp; Action gate</a><a class="nav-home" href="../evals.html">✓ &nbsp; Trial grader</a><a class="nav-home" href="../cost.html">$ &nbsp; Cost &amp; context</a><p class="nav-label">REFERENCE</p><a class="nav-home" href="../guides/project-contract.html">⌂ &nbsp; Project contract</a><a class="nav-home" href="../guides/first-model.html">◇ &nbsp; Connect a real model</a><a class="nav-home" href="../resources/lab.html">▸ &nbsp; Lab commands</a><a class="nav-home" href="../resources/assessment.html">⚑ &nbsp; Practical checkpoints</a><a class="nav-home" href="../course.html">≡ &nbsp; Full course guide</a></nav>
+    <div class="sidebar-bottom"><div class="progress-caption"><span>Sessions completed</span><strong data-progress-count>0 / 84</strong></div><progress max="84" value="0" data-global-progress aria-label="Completed learning sessions"></progress><button class="text-button" data-open-progress>Progress &amp; backup ↗</button><p>3 HOURS / WEEK · YOUR OWN PACE</p></div></aside><div class="app-shell"><header class="topbar"><button class="icon-button mobile-menu" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar" id="menu-toggle">☰</button><a class="breadcrumb" href="../index.html">Agents <span>/</span> Project contract</a><div class="topbar-actions"><button class="search-button" data-search-open><span>⌕</span> Search the course <kbd>/</kbd></button><button class="icon-button" aria-label="Print this page" data-print>↗</button></div></header>
+<main id="main" tabindex="-1"><div class="lesson-heading"><p class="eyebrow">COURSE MATERIAL</p></div><article class="lesson-content"><h1 id="project-contract--ops-agent">Project contract — ops agent</h1>
+<p>One project, consistent paths and interfaces, so every week builds on the last. The lessons refer to this page whenever they name a file or a record. You may change internals freely; keep these interfaces stable or update this contract in your copy when a decision record changes them.</p>
+<h2 id="directory-map">Directory map</h2>
+<pre><code class="language-text">projects/ops-agent/
+  app/
+    loop.py              # run(task, model, tools, config) -&gt; run summary; writes trajectory.jsonl   (M1)
+    models/              # provider adapters + scripted stubs for tests                              (M1)
+    workflows/           # fixed-sequence versions of tasks, for comparison                           (M1)
+    tools/               # one module per tool: contract + run(args, ctx)                             (M2)
+    context.py           # token accounting, caps, compaction, facts ledger                           (M3)
+    state.py             # checkpoints, resume, approval pause                                        (M3)
+    memory.py            # notes with provenance, scope and expiry                                    (M3)
+    gate.py              # authz, approvals, egress allowlist, taint hold, kill switch                (M4, M7)
+    graders.py           # outcome, trajectory and rubric graders                                     (M5)
+    orchestrator.py      # lead and workers, hand-off schemas                                         (M6)
+    tracing.py           # OpenTelemetry spans                                                        (M7)
+  mcp_server.py          # read-only tools over MCP                                                   (M2)
+  configs/
+    agent.json           # model IDs, budgets, harness switches
+    release-policy.json  # hard gates and soft targets                                                (M5)
+  data/
+    tasks/dev.jsonl      # development tasks
+    tasks/final.jsonl    # held-out tasks; run only with --final
+    fixtures/            # fictional documents, injections, tracker states
+  artifacts/
+    runs/&lt;run-id&gt;/       # trajectory.jsonl, summary.json, checkpoint.json
+    evals/&lt;eval-id&gt;/     # report.json and per-trial summaries
+    decisions/           # numbered decision records
+    security/            # threat model, red-team log
+    releases/&lt;id&gt;/       # manifest.json
+  tests/                 # offline: no network, scripted models
+  Makefile</code></pre>
+<p>Create directories when a lesson first needs them. Keep secrets out of the repository; read API keys from the environment.</p>
+<h2 id="commands">Commands</h2>
+<div class="table-scroll"><table><thead><tr><th>Command</th><th>Does</th><th>Network</th></tr></thead><tbody>
+<tr><td><code>make -C projects/ops-agent check</code></td><td>Unit, contract and security tests with scripted models.</td><td>None</td></tr>
+<tr><td><code>make -C projects/ops-agent run TASK=&lt;id&gt;</code></td><td>One real-model run; prints the trace and the summary path.</td><td>Model provider</td></tr>
+<tr><td><code>make -C projects/ops-agent eval TRIALS=3</code></td><td>Bounded development suite; writes <code>artifacts/evals/</code>.</td><td>Model provider</td></tr>
+<tr><td><code>make -C projects/ops-agent gate</code></td><td>Applies <code>release-policy.json</code> to the latest eval; non-zero exit on a hard failure.</td><td>None</td></tr>
+<tr><td><code>make -C projects/ops-agent approve RUN=&lt;id&gt;</code></td><td>Shows the exact pending request and records your decision.</td><td>None</td></tr>
+</tbody></table></div>
+<h2 id="model-adapter">Model adapter</h2>
+<pre><code class="language-python">def turn(messages: list[dict], tools: list[dict], config: dict) -&gt; dict:
+    """Returns {
+      "tool_calls": [{"id": str, "name": str, "args": dict}],   # may be empty
+      "text": str | None,                                      # final answer when no tool calls
+      "stop_reason": str,                                      # provider's reason, normalised
+      "usage": {"input_tokens": int, "output_tokens": int},
+      "model": str,                                            # exact model ID that answered
+      "raw": dict                                              # provider response, for the log
+    }"""</code></pre>
+<p>Messages use a neutral format: <code>{"role": "system"|"user"|"assistant", "content": str}</code>, assistant tool requests as <code>{"role": "assistant", "tool_calls": [...]}</code> and results as <code>{"role": "tool", "tool_call_id": str, "name": str, "content": str}</code>. Each adapter converts to and from its provider.</p>
+<h2 id="tool">Tool</h2>
+<pre><code class="language-python">name: str                 # snake_case, unique
+description: str          # when to use, when not to, what it returns, approval needs
+input_schema: dict        # JSON Schema; additionalProperties: false
+side_effect: bool
+approver_roles: list[str] # empty for read-only tools
+timeout_s: float
+def run(args: dict, ctx: RunContext) -&gt; dict   # ctx carries caller role, run ID, taint flag</code></pre>
+<p>Errors use one envelope, so the model and your graders can rely on it:</p>
+<pre><code class="language-json">{"error": "invalid_arguments", "message": "Fix the listed fields and call again.",
+ "details": [{"path": "$.minutes", "problem": "must be of type integer"}], "retryable": false}</code></pre>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Retryable</th><th>Meaning</th></tr></thead><tbody>
+<tr><td><code>invalid_arguments</code></td><td>No</td><td>Schema validation failed; <code>details</code> lists each problem.</td></tr>
+<tr><td><code>not_found</code></td><td>No</td><td>The requested object does not exist or is not visible to the caller.</td></tr>
+<tr><td><code>forbidden</code></td><td>No</td><td>The caller's role may not do this.</td></tr>
+<tr><td><code>approval_required</code></td><td>No</td><td>A side effect without a valid approval for these exact fields.</td></tr>
+<tr><td><code>conflict</code></td><td>No</td><td>Idempotency key reused with different fields.</td></tr>
+<tr><td><code>repeated_call</code></td><td>No</td><td>Harness refused an identical call.</td></tr>
+<tr><td><code>timeout</code>, <code>rate_limited</code>, <code>upstream_error</code></td><td>Yes</td><td>Transient; the harness may retry with backoff.</td></tr>
+<tr><td><code>unavailable</code></td><td>No</td><td>Circuit open or kill switch on.</td></tr>
+</tbody></table></div>
+<h2 id="trajectory-line">Trajectory line</h2>
+<pre><code class="language-json">{"run_id": "r-20261027-0012", "trace_id": "…", "step": 3, "type": "tool",
+ "tool": "draft_ticket", "args": {…}, "result": {…}, "attempts": 1, "note": null,
+ "gate": {"decision": "allowed", "by": null}, "tainted": false,
+ "context": {"total": 1840, "system": 210, "tools": 640, "task": 40, "results": 870, "model_text": 80},
+ "usage": {"input_tokens": 1840, "output_tokens": 96}, "model": "…", "ts": "2026-10-27T09:12:03Z"}</code></pre>
+<p>Types: <code>model</code>, <code>tool</code>, <code>harness</code> (retries, repeats, compaction, pause) and <code>final</code>.</p>
+<h2 id="run-summary">Run summary</h2>
+<pre><code class="language-json">{"run_id": "…", "task": "rollback-check", "config_hash": "…", "model": "…",
+ "stop_reason": "final_answer", "success": true, "checks": {…}, "steps": 4,
+ "input_tokens": 5120, "output_tokens": 410, "cost_estimate": 0.0, "wall_ms": 8400,
+ "side_effects": [], "drafts": ["D-1"], "tainted": false, "parent_run_id": null}</code></pre>
+<p>Stop reasons: <code>final_answer</code>, <code>max_turns</code>, <code>max_tokens</code>, <code>timeout</code>, <code>repeated_calls</code>, <code>tool_errors</code>, <code>awaiting_approval</code>, <code>kill_switch</code>.</p>
+<h2 id="task-record">Task record</h2>
+<pre><code class="language-json">{"id": "rollback-met-01", "family": "rollback", "split": "dev", "role": "engineer",
+ "prompt": "Playback errors rose after release r42 …",
+ "fixtures": {"fault": "none", "documents": ["rollback-v2"], "tracker": "empty"},
+ "checks": {"must_answer": true, "must_cite": ["rollback-v2"], "final_must_include": ["approval"],
+            "forbidden_side_effects": ["rollback", "create_ticket"], "required_drafts": 1, "max_steps": 8}}</code></pre>
+<h2 id="approval-record">Approval record</h2>
+<pre><code class="language-json">{"id": "A-17", "run_id": "…", "tool": "rollback", "fields_hash": "h3c…",
+ "approver": "your-name", "role": "incident-commander", "decision": "approved",
+ "created": "…", "expires": "…", "used": false}</code></pre>
+<h2 id="configuration">Configuration</h2>
+<pre><code class="language-json">{"model": {"provider": "ollama", "id": "&lt;tag you pulled&gt;", "temperature": 0.2},
+ "budgets": {"max_turns": 8, "max_input_tokens": 60000, "timeout_s": 120, "max_tool_errors": 3},
+ "harness": {"retry_transient": true, "detect_repeats": true, "compaction_threshold": 12000},
+ "gate": {"egress_allowlist": ["example.internal"], "taint_hold": true, "kill_switch": false}}</code></pre>
+<h2 id="relation-to-the-supplied-lab">Relation to the supplied lab</h2>
+<p><code>tracks/agents/lab/</code> is a reference, not your project. It uses estimated tokens, a single tool call per turn and in-memory state. Your project replaces each of those as the modules progress. Keep the lab's tests passing; they are also used by the browser workbenches.</p>
+</article><footer class="page-footer"><span>AI ENGINEERING LAB <span aria-hidden="true">/</span> Learn by building.</span><a href="https://github.com/nancruz/ai-engineering-lab/edit/main/docs/agents/guides/project-contract.html">Edit this HTML ↗</a></footer></main></div>
+<dialog id="search-dialog" aria-labelledby="search-title"><div class="dialog-head"><h2 id="search-title">Find your next step</h2><button class="icon-button" data-close-dialog aria-label="Close search">×</button></div><label class="sr-only" for="search-input">Search all lessons</label><input id="search-input" type="search" placeholder="Try ‘budget’, ‘week 14’ or ‘idempotency’" autocomplete="off"><div id="search-results" aria-live="polite"><p class="muted">Search lesson text, sessions, guides and workbenches.</p></div></dialog>
+<dialog id="progress-dialog" aria-labelledby="progress-title"><div class="dialog-head"><h2 id="progress-title">Your learning progress</h2><button class="icon-button" data-close-dialog aria-label="Close progress">×</button></div><p>Saved in this browser only, separately from the RAG course. Export a backup to continue on another device. This tracks your work and quick-check answers (<span data-checks-count>0</span> answered); it does not grade them.</p><p class="storage-status" role="status"></p><div class="dialog-actions"><button class="button primary" id="export-progress">Export progress</button><label class="button">Import backup<input class="sr-only" type="file" id="import-progress" accept="application/json"></label></div><p id="import-status" role="status"></p><details><summary>Reset this browser’s progress</summary><p>This cannot be undone without a backup.</p><button class="button danger" id="reset-progress">Reset saved progress</button></details></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><noscript><div class="noscript">Lesson content and links remain readable. Enable JavaScript for session controls, quick checks, search and the interactive workbenches.</div></noscript></body></html>
