@@ -20,17 +20,13 @@ Hands-on AI engineering courses, written directly in **HTML**. Open [docs/index.
 
 ## Edit the RAG course
 
-- Lessons: `docs/rag/lessons/*.html`
-- Guides: `docs/rag/guides/*.html`
-- Course map: `docs/rag/index.html` and `docs/rag/course.html`
-- Shared presentation and interactions: `docs/rag/assets/style.css` and `docs/rag/assets/app.js`
-- Navigation/session IDs and fictional workbench data: `docs/rag/assets/course-data.js`
-- Runnable Python labs: `tracks/rag/lab/`
-- Numerical references: `tracks/rag/reference-solutions/`
+- Pages: `docs/rag/index.html`, `docs/rag/setup.html`, `docs/rag/modules/*.html` (one per module: a **Learn** part with interactive widgets and a **Build** part with the lab), `docs/rag/capstone.html`, `docs/rag/reference.html`
+- Presentation and widgets: `docs/rag/assets/style.css` and `docs/rag/assets/app.js`
+- Browser mirror of the Python algorithms (tokenizer, BM25, chunking, packing, metrics, RRF): `docs/rag/assets/raglab.js`
+- Knowledge base and labelled questions: `tracks/rag/data/` (24 Markdown documents, 34 questions); the widgets read a copy in `docs/rag/assets/course-data.js`
+- Lab code: `tracks/rag/solution/` is the finished `minirag` package; code between `# LABn-BEGIN` and `# LABn-END` is what the learner writes. `tracks/rag/starter/` is generated from it.
 
-Edit an HTML page and refresh the browser. There is no Markdown source, generator, package installation or build step for the course. The Python code is the training lab, not a website dependency. Lesson text stays in HTML; search reads those pages directly.
-
-Progress is saved in the browser and can be exported/imported. Commands still run in your development environment. Browser workbenches use the fictional development data and do not call a live model.
+After changing the solution or the data, run `python3 tracks/rag/tools/sync.py` to regenerate the starter and `course-data.js`. `tests/site/test_site.py` fails if either is stale, runs every lab's tests against the solution, checks that each lab passes once only it and the earlier labs are written, and checks that `raglab.js` returns exactly what the Python code returns.
 
 ## Edit the agents course
 
@@ -65,6 +61,8 @@ Repository visibility and GitHub plan still determine whether Pages is available
 
 ## Training scope
 
-Three hours per week, eight modules and one evolving knowledge-assistant project. Start with evidence selection, build a real local RAG service, improve retrieval and generation, learn through practical ML experiments, then deploy and operate the service on AWS in the final 12 learning weeks. Keep completed work and continue at the next unfinished session.
+**RAG** (`docs/rag/`): seven modules plus a capstone, about 30–35 hours. Each module is one focused page with interactive widgets that run on a fictional streaming company's knowledge base, followed by a hands-on lab in one growing Python package (`minirag`) with starter code, tests and a reference solution: keyword search, embeddings, chunking, grounded generation, evaluation, hybrid search and reranking, and shipping it as a service. Everything runs on the Python standard library; local or hosted models plug in with a flag. There are no quizzes or written assignments.
 
-The RAG course map, supporting references, checkpoints and all lessons are in `docs/rag/`. The agents course (seven modules, 28 weeks, same three-hours-a-week rhythm) is in `docs/agents/` and builds an ops agent on the RAG course's fictional corpus. Future AI tracks are added alongside them (see **Add a course**). Notion is a planning dashboard; GitHub holds the current materials.
+**Agents** (`docs/agents/`): seven modules, 28 weeks at three hours a week, building an ops agent for the same fictional platform. Its lab ships its own small retriever and corpus.
+
+Future AI tracks are added alongside them (see **Add a course**). Notion is a planning dashboard; GitHub holds the current materials.

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 1 · Keyword search · AI Engineering Lab</title>
+<meta name="description" content="Inverted indexes and BM25, explained interactively, then built in Python.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<button class="menu-btn" type="button" aria-label="Open the course menu">☰ Menu</button>
+<aside class="sidebar">
+<a class="brand" href="../index.html"><b>ai<i>_</i></b><span>ENGINEERING LAB<small>RAG COURSE</small></span></a>
+<nav class="nav" aria-label="Course">
+<a href="../../index.html"><span class="num">←</span>All courses</a>
+<a href="../index.html"><span class="num">◈</span>Course home</a>
+<a href="../setup.html"><span class="num">▸</span>Setup</a>
+<p class="nav-label">MODULES</p>
+<a href="../modules/01-keyword-search.html" aria-current="page" data-lab="1"><span class="num">01</span>Keyword search<span class=tick>✓</span></a>
+<a href="../modules/02-embeddings.html" data-lab="2"><span class="num">02</span>Embeddings &amp; vectors<span class=tick>✓</span></a>
+<a href="../modules/03-chunking.html" data-lab="3"><span class="num">03</span>Chunking<span class=tick>✓</span></a>
+<a href="../modules/04-generation.html" data-lab="4"><span class="num">04</span>Grounded generation<span class=tick>✓</span></a>
+<a href="../modules/05-evaluation.html" data-lab="5"><span class="num">05</span>Evaluation<span class=tick>✓</span></a>
+<a href="../modules/06-better-retrieval.html" data-lab="6"><span class="num">06</span>Better retrieval<span class=tick>✓</span></a>
+<a href="../modules/07-ship-it.html" data-lab="7"><span class="num">07</span>Ship it<span class=tick>✓</span></a>
+<a href="../capstone.html" data-lab="8"><span class="num">★</span>Capstone<span class=tick>✓</span></a>
+<p class="nav-label">MORE</p>
+<a href="../reference.html"><span class="num">≡</span>Reference</a>
+</nav>
+<div class="side-foot"><span data-count>0 / 8 labs done</span><div class="bar"><span></span></div>Progress is saved in this browser.</div>
+</aside>
+<main class="main" id="main">
+<div class="content">
+<p class="eyebrow"><span class="dot"></span>MODULE 01 · RETRIEVE</p>
+<h1>Find documents by their words</h1>
+<p class="lede">Before any AI: the ranking function behind Elasticsearch, OpenSearch and Lucene, which still does the first pass in many production RAG systems. You'll see why exact words matter, how BM25 scores them, and where word matching breaks.</p>
+<div class="chips"><span class="chip">Learn 20 min</span><span class="chip">Build ≈ 3 h</span><span class="chip">text.py · lexical.py</span></div>
+<nav class="tabs"><a class="learn" href="#learn">Learn</a><a class="build" href="#build">Build · Lab 1</a><a href="#further">Go further</a></nav>
+
+<div class="part learn" id="learn"><span>LEARN</span><h2>How keyword search ranks documents</h2></div>
+<h3>Retrieval decides what the model can know</h3>
+<p>A language model in a RAG system only answers from the passages you put in front of it. Retrieval picks those few passages out of everything you have. If the passage with the answer isn't retrieved, nothing later in the pipeline can recover it. That's why the course starts here, and why most RAG debugging starts by asking "was the right passage retrieved?"</p>
+
+<h3>The inverted index</h3>
+<p>Scanning every document for every query is too slow. A search engine builds an <strong>inverted index</strong> once: like the index at the back of a book, it maps each term to the documents that contain it. A query looks up its terms and only scores the documents on those lists.</p>
+<div class="widget" data-widget="invindex"><div class="widget-head"><span class="tag">TRY IT</span><h3>Look a query up in an inverted index</h3></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+<p>The "terms" come from a <strong>tokenizer</strong>: lowercase the text, split it into words, drop words like "the" and "how" that appear everywhere. Small choices here matter. Should <code>PLAY-4012</code> be one term or two? You'll decide in the lab.</p>
+
+<h3>Scoring with BM25: three ideas</h3>
+<p>Once you have candidates, you need an order. <strong>BM25</strong> adds up a score for every query term a document contains, built from three intuitions:</p>
+<div class="grid2">
+<div class="card"><h4>1. Rare terms matter more</h4><p class="small">"playback" is in many Lumen documents, so it says little. "PLAY-4012" is in two. <strong>IDF</strong> (inverse document frequency) gives each term a weight that grows as fewer documents contain it.</p></div>
+<div class="card"><h4>2. Repeats help, with diminishing returns</h4><p class="small">A document mentioning "timeout" five times is probably more about timeouts than one mentioning it once, but not five times more. <strong>k1</strong> controls how fast extra occurrences stop counting.</p></div>
+<div class="card"><h4>3. Long documents shouldn't win by being long</h4><p class="small">A long handbook contains more words, so it matches more queries by chance. <strong>b</strong> controls how much a document's length (compared with the average) dampens its score.</p></div>
+<div class="card"><h4>Put together</h4><p class="small">score = Σ over query terms of idf(term) × saturated, length-normalized term frequency. No training, no model: just counting, and it's still hard to beat on exact terms.</p></div>
+</div>
+<details><summary>The formula</summary>
+<div class="formula">score(d, q) = Σ<sub>t ∈ q</sub> idf(t) · tf(t,d) · (k1 + 1) / ( tf(t,d) + k1 · (1 − b + b · |d| / avgdl) )<br>idf(t) = ln( 1 + (N − df(t) + 0.5) / (df(t) + 0.5) )</div>
+<p class="small">tf(t,d): occurrences of t in d · df(t): documents containing t · N: number of documents · |d|: terms in d · avgdl: average |d|. Common defaults: k1 between 1.2 and 2.0, b = 0.75. This is the "+1 inside the log" variant used by Lucene, which keeps IDF positive.</p>
+</details>
+
+<div class="widget wide" data-widget="bm25"><div class="widget-head"><span class="tag">TRY IT</span><h3>BM25 explorer on the Lumen knowledge base</h3><p>Bars show each term's contribution</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+<p>Things to try in the explorer:</p>
+<ul>
+<li><strong>PLAY-4012</strong>: the DRM overview slightly outscores the error-code table. Both mention the code; the DRM page is shorter. Drag <strong>b</strong> to 0 and the table wins. Length normalization helped here, and hurt there.</li>
+<li><strong>k1 = 0</strong> makes every term count once, however often it appears. Watch the saturation curve flatten.</li>
+<li><strong>catalog timeout retries</strong>: the archived 2023 standard (3000 ms, three retries) ranks <em>above</em> the current one. BM25 measures word overlap, not truth or freshness. You'll fix that with metadata in Module 4.</li>
+<li><strong>how do I undo a bad playback release</strong>: the deploy pipeline page wins on "bad" and "release". The runbook says "roll back", which isn't the same word. That's the vocabulary mismatch Module 2 addresses.</li>
+</ul>
+
+<div class="takeaways"><h3>Key takeaways</h3><ul>
+<li>Retrieval quality caps answer quality: a passage that isn't retrieved can't be used.</li>
+<li>An inverted index makes keyword search fast; BM25 ranks with rarity (IDF), saturation (k1) and length normalization (b).</li>
+<li>Keyword search is excellent at exact identifiers and blind to synonyms, freshness and permissions.</li>
+</ul></div>
+
+<div class="part build" id="build"><span>BUILD</span><h2>Lab 1: a tokenizer and a BM25 index</h2></div>
+<div class="lab-goal"><p><strong>Goal:</strong> search the Lumen knowledge base from your terminal with your own BM25, and explain every score.</p><p class="files">You write: <code>minirag/text.py</code> → <code>tokenize()</code> · <code>minirag/lexical.py</code> → <code>BM25Index.__init__</code>, <code>idf</code>, <code>term_scores</code>, <code>search</code></p></div>
+<ol class="steps">
+<li><h4>Tokenize</h4>
+<p>Implement <code>tokenize(text)</code>: lowercase, find terms with the supplied <code>TOKEN</code> regex, keep compounds like <code>play-4012</code> whole <em>and</em> add their parts (<code>play</code>, <code>4012</code>), drop stopwords. The docstring has an example.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab1_search -k Tokenize</code></pre>
+<details><summary>Hint</summary><p><code>re.split(r"[-_]", match)</code> gives the parts. Build a list in order; the tests check the order.</p></details></li>
+<li><h4>Build the inverted index</h4>
+<p>In <code>BM25Index.__init__</code>, for each item tokenize <code>item.search_text()</code> and record: a <code>Counter</code> of term frequencies, the document length, the document frequency of each term (once per item), and the postings (term → list of item positions).</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab1_search -k BuildIndex</code></pre></li>
+<li><h4>Score</h4>
+<p>Implement <code>idf(term)</code> and <code>term_scores(query_terms, position)</code> from the formula above. A query term that appears twice counts once. Terms absent from the item are left out of the result.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab1_search -k Scoring</code></pre>
+<details><summary>Hint</summary><p><code>dict.fromkeys(query_terms)</code> de-duplicates while keeping order. Compute the length-normalization factor once per item, outside the loop.</p></details></li>
+<li><h4>Search</h4>
+<p>Implement <code>search(query, k, allow)</code>: collect candidate positions from the postings of the query terms, skip items where <code>allow(item)</code> is false, sum each candidate's term scores, sort by score (highest first) then by id, and return the top k <code>(item, score)</code> pairs.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab1_search</code></pre></li>
+<li><h4>Run it</h4>
+<p>Search whole documents (Module 3 introduces smaller chunks) and ask for the per-term breakdown:</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m minirag search "PLAY-4012" --chunks document --k 3 --explain</code></pre>
+<pre class="out"><code>bm25 · 24 chunks (document) · role=engineer
+
+ 1.   7.801  drm-license-service
+           # DRM license service overview The license service issues decryption licenses that let a …
+           play=3.14  play-4012=2.33  4012=2.33
+ 2.   7.794  playback-error-codes
+           # Playback error codes Players report errors as `PLAY-xxxx`. The first digit tells you wh…
+           play=3.64  play-4012=2.08  4012=2.08
+ 3.   2.268  playback-architecture
+           ...</code></pre>
+<p>If your numbers match these, your BM25 matches the reference.</p></li>
+</ol>
+
+<h3>Experiments</h3>
+<ul class="try">
+<li><b>Fix the PLAY-4012 ranking</b>Rerun with <code>--b 0</code>, <code>--b 0.3</code> and <code>--b 0.5</code>. Below which value does the error-code table come first? Now try "kill switch flag naming" and "catalog timeout retries" with the same values. Is there one <code>b</code> that's best for all three?<div class="look">Look for: tuning a parameter on one query usually hurts another. Module 5 gives you a whole question set, so you can tune on all of them at once.</div></li>
+<li><b>Compound terms: whole, parts, or both?</b>Temporarily make <code>tokenize</code> stop adding the parts of compounds, then search <code>4012</code> and <code>CATALOG_DEADLINE_MS</code>. Then try keeping only the parts.<div class="look">Look for: the scores of <code>play</code> vs <code>play-4012</code> in <code>--explain</code>. The parts make partial matches possible; the whole compound keeps its high IDF.</div></li>
+<li><b>Vocabulary mismatch</b>Search "how do I undo a bad playback release" with <code>--explain</code>. Which words carried the deploy-pipeline page? Then search "kill switch flag" and look at the feature-flags policy: it says "Kill switches" and "flags". Add a small plural rule to <code>tokenize</code> (strip <code>es</code> after <code>ch</code>/<code>sh</code>/<code>x</code>, otherwise a trailing <code>s</code>, for words longer than 3 letters) and search again.<div class="look">Look for: stemming fixes plurals (<code>flags</code> → <code>flag</code>), not synonyms (<code>undo</code> vs <code>roll back</code>). Synonyms need meaning, which is Module 2. Keep the stemmer only if Module 5's numbers say it helps.</div></li>
+</ul>
+<div class="done-box"><p><strong>Done when</strong> <code>python3 -m unittest -v tests.test_lab1_search</code> passes and <code>minirag search</code> returns the results above.</p><button class="mark-done" type="button" data-lab="1">Mark this lab as done</button></div>
+
+<div class="part more" id="further"><span>GO FURTHER</span><h2>Optional</h2></div>
+<ul>
+<li>Load the same documents into OpenSearch or Elasticsearch (both run in Docker) and compare their BM25 ranking with yours. They tokenize differently: look up "analyzers".</li>
+<li>Read <a href="https://www.staff.city.ac.uk/~sbrp622/papers/foundations_bm25_review.pdf">The Probabilistic Relevance Framework: BM25 and Beyond</a> (Robertson &amp; Zaragoza) for where the formula comes from.</li>
+</ul>
+<div class="next"><a href="../setup.html"><small>← Back</small>Setup</a><a href="02-embeddings.html"><small>Next →</small>Module 2 · Embeddings &amp; vector search</a></div>
+<p class="foot">AI ENGINEERING LAB / RAG · Learn it, build it, measure it.</p>
+</div>
+</main>
+<script src="../assets/course-data.js"></script>
+<script src="../assets/raglab.js"></script>
+<script src="../assets/app.js"></script>
+</body>
+</html>

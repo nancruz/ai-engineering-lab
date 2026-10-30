@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 5 · Evaluation · AI Engineering Lab</title>
+<meta name="description" content="Retrieval metrics, answer checks and LLM-as-judge for RAG, explained interactively and built in Python.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<button class="menu-btn" type="button" aria-label="Open the course menu">☰ Menu</button>
+<aside class="sidebar">
+<a class="brand" href="../index.html"><b>ai<i>_</i></b><span>ENGINEERING LAB<small>RAG COURSE</small></span></a>
+<nav class="nav" aria-label="Course">
+<a href="../../index.html"><span class="num">←</span>All courses</a>
+<a href="../index.html"><span class="num">◈</span>Course home</a>
+<a href="../setup.html"><span class="num">▸</span>Setup</a>
+<p class="nav-label">MODULES</p>
+<a href="../modules/01-keyword-search.html" data-lab="1"><span class="num">01</span>Keyword search<span class=tick>✓</span></a>
+<a href="../modules/02-embeddings.html" data-lab="2"><span class="num">02</span>Embeddings &amp; vectors<span class=tick>✓</span></a>
+<a href="../modules/03-chunking.html" data-lab="3"><span class="num">03</span>Chunking<span class=tick>✓</span></a>
+<a href="../modules/04-generation.html" data-lab="4"><span class="num">04</span>Grounded generation<span class=tick>✓</span></a>
+<a href="../modules/05-evaluation.html" aria-current="page" data-lab="5"><span class="num">05</span>Evaluation<span class=tick>✓</span></a>
+<a href="../modules/06-better-retrieval.html" data-lab="6"><span class="num">06</span>Better retrieval<span class=tick>✓</span></a>
+<a href="../modules/07-ship-it.html" data-lab="7"><span class="num">07</span>Ship it<span class=tick>✓</span></a>
+<a href="../capstone.html" data-lab="8"><span class="num">★</span>Capstone<span class=tick>✓</span></a>
+<p class="nav-label">MORE</p>
+<a href="../reference.html"><span class="num">≡</span>Reference</a>
+</nav>
+<div class="side-foot"><span data-count>0 / 8 labs done</span><div class="bar"><span></span></div>Progress is saved in this browser.</div>
+</aside>
+<main class="main" id="main">
+<div class="content">
+<p class="eyebrow"><span class="dot"></span>MODULE 05 · MEASURE</p>
+<h1>Turn "seems better" into numbers</h1>
+<p class="lede">Every change you've made so far, from chunk size to BM25's <code>b</code> to the model, helped some questions and probably hurt others. An evaluation set tells you which. You'll learn the retrieval metrics everyone uses, how to check answers, and when to trust an LLM as a judge, then build a harness that scores your whole system in one command.</p>
+<div class="chips"><span class="chip">Learn 25 min</span><span class="chip">Build ≈ 4 h</span><span class="chip">evaluation.py</span></div>
+<nav class="tabs"><a class="learn" href="#learn">Learn</a><a class="build" href="#build">Build · Lab 5</a><a href="#further">Go further</a></nav>
+
+<div class="part learn" id="learn"><span>LEARN</span><h2>Measure retrieval and answers separately</h2></div>
+<h3>Start with the questions, not the metric</h3>
+<p>An evaluation set is a list of realistic questions with labels written <em>before</em> you look at what the system returns. The course's <code>questions.json</code> labels each question with:</p>
+<table>
+<tr><th>Label</th><th>Example (q02)</th><th>Used for</th></tr>
+<tr><td><code>relevant</code></td><td><code>["catalog-api-timeouts"]</code></td><td>document-level retrieval metrics</td></tr>
+<tr><td><code>evidence</code></td><td><code>["800 ms total deadline"]</code></td><td>did the answering <em>passage</em> reach the prompt?</td></tr>
+<tr><td><code>must_include</code> / <code>must_not_include</code></td><td><code>["800"]</code> / <code>["3000"]</code></td><td>cheap, deterministic answer checks</td></tr>
+<tr><td><code>expected</code></td><td><code>answer</code> or <code>abstain</code></td><td>does it refuse when it should?</td></tr>
+<tr><td><code>type</code></td><td><code>freshness</code></td><td>see <em>where</em> it fails: exact, paraphrase, multi-doc, access, missing…</td></tr>
+</table>
+<p>Questions are split into <strong>dev</strong> (28: tune on these) and <strong>test</strong> (6: look once, at the end). If you tune until the test set looks good, it has become a dev set and tells you nothing about new questions.</p>
+
+<h3>Retrieval metrics</h3>
+<p>Retrieval returns a ranked list; the labels say which items are relevant. Four standard metrics read that list differently. Rearrange the ranking below and watch them disagree.</p>
+<div class="widget" data-widget="metrics"><div class="widget-head"><span class="tag">TRY IT</span><h3>Ranking metrics workbench</h3><p>Starts from your BM25's real ranking</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+<div class="grid2">
+<div class="card"><h4>Hit@k and recall@k</h4><p class="small">Hit asks "anything relevant in the top k?" and is forgiving. Recall asks "what share of the relevant items?" and matters when an answer needs two documents.</p></div>
+<div class="card"><h4>MRR and nDCG</h4><p class="small">Both reward putting relevant items <em>first</em>. MRR only looks at the first hit; nDCG gives every relevant item credit, discounted by position (1/log₂(position + 1)).</p></div>
+</div>
+<p>Document-level metrics can look perfect while the answer is still missing: the right document was found, but not the section that answers the question. That's why this course adds <strong>evidence found</strong>: the share of a question's evidence strings that appear inside one of the retrieved chunks. It's the most honest retrieval number here.</p>
+
+<h3>The whole system, on the whole dev set</h3>
+<p>The board below runs your Module 1 BM25 over all 28 dev questions in your browser. Change the chunking and <code>k</code> and see the trade-off between evidence found and tokens per question.</p>
+<div class="widget wide" data-widget="evalboard"><div class="widget-head"><span class="tag">TRY IT</span><h3>Live evaluation board (BM25)</h3><p>Same rules as minirag eval</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+<p>Notice that whole documents find almost all the evidence, at about five times the tokens. "Better retrieval" is always better <em>at a cost</em>.</p>
+
+<h3>Checking answers</h3>
+<p>Two complementary approaches:</p>
+<ul>
+<li><strong>Deterministic checks</strong>: required facts present (<code>800</code>), forbidden facts absent (<code>3000</code>, <code>720</code> for an engineer), abstained when it should have, cites a relevant document. Fast, free, repeatable. They miss paraphrases ("eight hundred milliseconds") and can't judge reasoning.</li>
+<li><strong>LLM-as-judge</strong>: give a model the sources and the answer and ask, claim by claim, whether the sources support it. That measures <strong>faithfulness</strong>, the core RAG failure: fluent answers that the sources don't support.</li>
+</ul>
+<div class="warn"><p><strong>Judges are models too.</strong> They prefer longer answers, can favour their own model family, and drift when you change their prompt. Before trusting a judge, label 10–20 answers yourself and check that the judge agrees with you. Ask for per-claim yes/no decisions rather than a 1–10 score; they're more consistent.</p></div>
+
+<h3>Reading results honestly</h3>
+<ul>
+<li><strong>Look at failures, not just averages.</strong> Ten minutes reading wrong answers teaches more than a decimal place.</li>
+<li><strong>Small sets are noisy.</strong> With 28 questions, one question moves an average by 0.036. Don't celebrate 0.02.</li>
+<li><strong>Slice by type.</strong> A change that fixes paraphrases and breaks exact codes can leave the average unchanged.</li>
+</ul>
+<div class="takeaways"><h3>Key takeaways</h3><ul>
+<li>Write labelled questions first; split dev and test; slice results by question type.</li>
+<li>Hit, recall, MRR and nDCG measure document ranking; evidence found measures whether the answer passage arrived.</li>
+<li>Combine deterministic answer checks with an LLM judge that you've checked against your own labels.</li>
+</ul></div>
+
+<div class="part build" id="build"><span>BUILD</span><h2>Lab 5: an evaluation harness</h2></div>
+<div class="lab-goal"><p><strong>Goal:</strong> one command that scores any retriever and LLM configuration on the labelled questions, broken down by question type, with failures listed.</p><p class="files">You write, in <code>minirag/evaluation.py</code>: <code>hit_at_k</code>, <code>recall_at_k</code>, <code>reciprocal_rank</code>, <code>ndcg_at_k</code>, <code>evidence_recall</code>, <code>evaluate_retrieval</code>, <code>check_answer</code>, <code>parse_judgement</code>. Supplied: the CLI report, <code>evaluate_answers</code>, <code>judge_faithfulness</code> and the judge prompt.</p></div>
+<ol class="steps">
+<li><h4>Ranking metrics</h4><p>Implement the four metrics. Each returns <code>None</code> when the question has no relevant documents, only counts the first <code>k</code> unique ids, and returns floats.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab5_evaluation -k RankingMetrics</code></pre></li>
+<li><h4>Evidence</h4><p><code>evidence_recall(texts, evidence)</code>: the share of evidence strings found, case-insensitively, inside a single retrieved chunk text.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab5_evaluation -k Evidence</code></pre></li>
+<li><h4>The harness</h4><p><code>evaluate_retrieval(retriever, questions, k)</code>: retrieve for every question with its role, turn hits into unique document ids, compute each metric plus evidence and tokens, list any leaked documents, and summarize. Leaks should always be zero: if not, your Module 4 filter has a hole.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab5_evaluation -k Harness</code></pre></li>
+<li><h4>Answer checks and the judge</h4><p><code>check_answer</code> applies the labels to an <code>Answer</code>. <code>parse_judgement</code> pulls the JSON out of a judge's reply (models often wrap it in prose or code fences) and computes the supported share of claims.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab5_evaluation</code></pre></li>
+<li><h4>Evaluate</h4>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m minirag eval --compare bm25,dense,hybrid</code></pre>
+<pre class="out"><code>28 questions · split=dev · k=5 · chunks=headings
+
+retriever               hit@k  recall    MRR   nDCG  evidence  tokens   leaks
+bm25                     0.96    0.96   0.90   0.92      0.90     335   0
+dense                    1.00    0.96   0.91   0.90      0.88     353   0
+hybrid                   1.00    0.98   0.94   0.94      0.94     354   0
+
+evidence found, by question type
+                           access  condition      exact  freshness  injection    missing  multi-doc paraphrase  procedure
+bm25                         1.00       1.00       1.00       1.00       1.00        –         0.75       0.71       1.00
+dense                        1.00       1.00       1.00       1.00       1.00        –         0.50       0.71       1.00
+hybrid                       1.00       1.00       1.00       1.00       1.00        –         0.75       0.86       1.00</code></pre>
+<p>(<code>dense</code> here uses the offline hashing embedder; <code>hybrid</code> merges it with BM25, which is Module 6.) Then score the answers:</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m minirag eval --answers --show-failures</code></pre>
+<pre class="out"><code>answers (extractive)
+retriever                pass  abstain  cites
+bm25                     0.50     0.79   0.64
+  ✗ q03 [paraphrase] missing 'rollback': It is designed so that a bad release reaches as few users as possible…
+  ✗ q05 [multi-doc] should answer: I don't know based on the available documents.
+  ...</code></pre>
+<p>Half the answers pass with the sentence-copying baseline. That's your number to beat.</p></li>
+</ol>
+
+<h3>Experiments</h3>
+<ul class="try">
+<li><b>Beat the baseline with a real model</b><code>python3 -m minirag eval --answers --show-failures --llm ollama:llama3.2:3b</code> (or a hosted model). Write down pass, abstain and cites.<div class="look">Look for: which failures disappear (multi-doc, paraphrase) and which new ones appear (wrong abstentions, forbidden facts). If a model leaks <code>720</code> to an engineer, check your filter: it never should.</div></li>
+<li><b>Tune chunking with numbers</b>Run <code>eval --k 3</code> with <code>--chunks fixed --size 300</code>, <code>--chunks paragraph --size 600</code>, <code>--chunks headings</code> and <code>--chunks document</code>.<div class="look">Look for: evidence vs tokens. Pick the configuration you'd ship and say why in one sentence. That's the decision this harness exists for.</div></li>
+<li><b>Re-check Module 1's ideas</b>Re-run your BM25 <code>--b</code> values and your stemmer from Lab 1, this time with <code>eval</code>.<div class="look">Look for: whether a change that fixed one query improves the whole set, or just moves failures around.</div></li>
+<li><b>Judge the judge</b>Run <code>eval --answers --llm &lt;model&gt; --judge &lt;model&gt; --out runs/judged.json</code>. Open the file, pick 10 answers, and decide yourself whether each claim is supported.<div class="look">Look for: how often you and the judge agree, and in which direction it errs. Would you let it block a release?</div></li>
+<li><b>The test set, once</b>When you've chosen a configuration, run it with <code>--split test</code>.<div class="look">Look for: a drop from dev to test is normal. A large drop means you tuned to the dev questions.</div></li>
+</ul>
+<div class="done-box"><p><strong>Done when</strong> <code>python3 -m unittest -v tests.test_lab5_evaluation</code> passes and <code>minirag eval --answers</code> prints both tables for your system.</p><button class="mark-done" type="button" data-lab="5">Mark this lab as done</button></div>
+
+<div class="part more" id="further"><span>GO FURTHER</span><h2>Optional</h2></div>
+<ul>
+<li>Add a bootstrap confidence interval to <code>eval</code>: resample questions with replacement 1,000 times and report the 5th and 95th percentile of the difference between two configurations.</li>
+<li>Generate extra questions with an LLM from random chunks ("write a question this passage answers"), then review them by hand. Synthetic data is cheap; unreviewed synthetic data is misleading.</li>
+<li>Try an evaluation library such as <a href="https://docs.ragas.io/">Ragas</a> on your saved runs and compare its faithfulness scores with yours.</li>
+</ul>
+<div class="next"><a href="04-generation.html"><small>← Back</small>Module 4 · Grounded generation</a><a href="06-better-retrieval.html"><small>Next →</small>Module 6 · Better retrieval</a></div>
+<p class="foot">AI ENGINEERING LAB / RAG · Learn it, build it, measure it.</p>
+</div>
+</main>
+<script src="../assets/course-data.js"></script>
+<script src="../assets/raglab.js"></script>
+<script src="../assets/app.js"></script>
+</body>
+</html>

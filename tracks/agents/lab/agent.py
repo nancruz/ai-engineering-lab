@@ -11,10 +11,8 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[2]
-sys.path.insert(0, str(ROOT / "tracks/rag/lab"))
 sys.path.insert(0, str(HERE))
-from retrieval import retrieve  # noqa: E402  (reuses the RAG course's BM25)
+from retrieval import retrieve  # noqa: E402  (small BM25 over data/corpus.json)
 from schema import validate  # noqa: E402
 
 
@@ -22,7 +20,7 @@ def load(name):
     return json.loads((HERE / "data" / name).read_text())
 
 
-CORPUS = json.loads((ROOT / "tracks/rag/lab/data/corpus.json").read_text())
+CORPUS = load("corpus.json")
 WORLD = load("world.json")
 TOOLS = load("tools.json")
 TASKS = load("tasks.json")

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 2 · Embeddings and vector search · AI Engineering Lab</title>
+<meta name="description" content="Embeddings, cosine similarity and vector indexes, explained interactively and built in Python.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<button class="menu-btn" type="button" aria-label="Open the course menu">☰ Menu</button>
+<aside class="sidebar">
+<a class="brand" href="../index.html"><b>ai<i>_</i></b><span>ENGINEERING LAB<small>RAG COURSE</small></span></a>
+<nav class="nav" aria-label="Course">
+<a href="../../index.html"><span class="num">←</span>All courses</a>
+<a href="../index.html"><span class="num">◈</span>Course home</a>
+<a href="../setup.html"><span class="num">▸</span>Setup</a>
+<p class="nav-label">MODULES</p>
+<a href="../modules/01-keyword-search.html" data-lab="1"><span class="num">01</span>Keyword search<span class=tick>✓</span></a>
+<a href="../modules/02-embeddings.html" aria-current="page" data-lab="2"><span class="num">02</span>Embeddings &amp; vectors<span class=tick>✓</span></a>
+<a href="../modules/03-chunking.html" data-lab="3"><span class="num">03</span>Chunking<span class=tick>✓</span></a>
+<a href="../modules/04-generation.html" data-lab="4"><span class="num">04</span>Grounded generation<span class=tick>✓</span></a>
+<a href="../modules/05-evaluation.html" data-lab="5"><span class="num">05</span>Evaluation<span class=tick>✓</span></a>
+<a href="../modules/06-better-retrieval.html" data-lab="6"><span class="num">06</span>Better retrieval<span class=tick>✓</span></a>
+<a href="../modules/07-ship-it.html" data-lab="7"><span class="num">07</span>Ship it<span class=tick>✓</span></a>
+<a href="../capstone.html" data-lab="8"><span class="num">★</span>Capstone<span class=tick>✓</span></a>
+<p class="nav-label">MORE</p>
+<a href="../reference.html"><span class="num">≡</span>Reference</a>
+</nav>
+<div class="side-foot"><span data-count>0 / 8 labs done</span><div class="bar"><span></span></div>Progress is saved in this browser.</div>
+</aside>
+<main class="main" id="main">
+<div class="content">
+<p class="eyebrow"><span class="dot"></span>MODULE 02 · RETRIEVE</p>
+<h1>Search by meaning, not spelling</h1>
+<p class="lede">Keyword search can't see that "undo a bad release" means "roll back". Embedding models can: they turn text into vectors whose direction captures meaning. You'll see what cosine similarity measures, then build vector search with a cache, and plug in a real embedding model.</p>
+<div class="chips"><span class="chip">Learn 20 min</span><span class="chip">Build ≈ 3 h</span><span class="chip">embeddings.py · vectors.py</span></div>
+<nav class="tabs"><a class="learn" href="#learn">Learn</a><a class="build" href="#build">Build · Lab 2</a><a href="#further">Go further</a></nav>
+
+<div class="part learn" id="learn"><span>LEARN</span><h2>Vectors, angles and nearest neighbours</h2></div>
+<h3>An embedding is a point in meaning-space</h3>
+<p>An <strong>embedding model</strong> maps a piece of text to a list of numbers, a vector: 384 numbers for <code>all-MiniLM-L6-v2</code>, 768 for <code>nomic-embed-text</code>. It's trained on millions of pairs of related texts (a question and its answer, a title and its article) to put related texts close together and unrelated ones far apart. Nobody chooses what each dimension means; what matters is which vectors end up close.</p>
+<p>"Close" means pointing in a similar direction. The usual measure is <strong>cosine similarity</strong>: the cosine of the angle between two vectors. It's 1 when they point the same way, 0 when they're unrelated (at 90°) and −1 when they're opposite. It ignores length, so a long passage and a short question can still match.</p>
+<div class="widget" data-widget="vectors"><div class="widget-head"><span class="tag">TRY IT</span><h3>Cosine similarity is about angle</h3><p>Two dimensions instead of 768</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+<div class="key"><p><strong>Normalize once, then use dot products.</strong> If every vector is scaled to length 1, the dot product <em>is</em> the cosine. Vector databases rely on this: normalize at indexing time, then searching is just multiply-and-add.</p></div>
+
+<h3>Nearest neighbours: what vector search returns</h3>
+<p>To search, embed the question with the same model and return the chunks whose vectors are most similar. The map below is a hand-drawn 2-D cartoon of what an embedding model does. Real models work in hundreds of dimensions, and you'll use one in the lab. Notice that the nearest sentences often share <em>no words</em> with the question.</p>
+<div class="widget" data-widget="meaningmap"><div class="widget-head"><span class="tag">TRY IT</span><h3>A toy map of meaning</h3><p>Illustrative positions</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+
+<h3>Keyword and vector search fail differently</h3>
+<table>
+<tr><th>Query</th><th>Keyword (BM25)</th><th>Vector</th></tr>
+<tr><td>Exact identifiers: <code>PLAY-4019</code>, <code>CATALOG_DEADLINE_MS</code></td><td>Strong: rare token, high IDF</td><td>Often weak: codes have little "meaning" to the model</td></tr>
+<tr><td>Paraphrases: "undo a bad release"</td><td>Weak: needs the same words</td><td>Strong: that's what it's trained for</td></tr>
+<tr><td>Numbers and negation: "not in staging", "under 2%"</td><td>Weak</td><td>Weak: "approval needed" and "no approval needed" look alike</td></tr>
+<tr><td>Your company's jargon</td><td>Fine if the words match</td><td>Depends on whether the model saw similar text</td></tr>
+</table>
+<p>Because they fail differently, production systems often run both and merge the results. That's Module 6.</p>
+
+<h3>Exact versus approximate search</h3>
+<p>Comparing the query with every vector (<strong>exact</strong>, or brute-force, search) is fine for thousands of chunks. At millions, vector databases (pgvector, OpenSearch, Qdrant, Pinecone…) use <strong>approximate nearest neighbour</strong> indexes such as HNSW, a graph you walk from neighbour to neighbour. It's much faster, but may miss some true neighbours, so measure ANN results against exact search on your own data before trusting them.</p>
+
+<h3>Practicalities that bite</h3>
+<ul>
+<li><strong>Same model for questions and documents.</strong> Vectors from different models aren't comparable, even if they have the same length.</li>
+<li><strong>Prefixes.</strong> Some models expect a task prefix; <code>nomic-embed-text</code> wants <code>search_query: </code> and <code>search_document: </code>. The supplied adapter adds them.</li>
+<li><strong>Cache embeddings.</strong> Embedding is the slow, sometimes paid, step. Key the cache by model name and text, so changing either re-embeds.</li>
+<li><strong>Memory.</strong> 1 million chunks × 768 dimensions × 4 bytes ≈ 3 GB of floats, before any index overhead.</li>
+</ul>
+<div class="takeaways"><h3>Key takeaways</h3><ul>
+<li>Embeddings place text so that similar meaning means similar direction; cosine similarity measures that direction.</li>
+<li>Vector search finds paraphrases that keyword search misses, and misses exact codes that keyword search finds.</li>
+<li>Normalize, cache by model + text, and use the same model on both sides.</li>
+</ul></div>
+
+<div class="part build" id="build"><span>BUILD</span><h2>Lab 2: vector search with a cache</h2></div>
+<div class="lab-goal"><p><strong>Goal:</strong> run dense retrieval over the knowledge base, first with the offline stand-in, then with a real embedding model, and compare it with your BM25.</p><p class="files">You write: <code>minirag/embeddings.py</code> → <code>cosine</code>, <code>normalize</code>, <code>CachedEmbedder.embed_documents</code> · <code>minirag/vectors.py</code> → <code>VectorIndex.search</code></p></div>
+<ol class="steps">
+<li><h4>Similarity</h4><p>Implement <code>cosine(a, b)</code> and <code>normalize(v)</code> with the supplied <code>dot</code> and <code>norm</code>. Zero vectors must not crash.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab2_vectors -k Similarity</code></pre></li>
+<li><h4>Exact vector search</h4><p>Implement <code>VectorIndex.search</code>: embed the query with <code>embed_query</code>, normalize it, take the dot product with every allowed item's vector (they're normalized when the index is built), sort by score then id, return the top k.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab2_vectors -k VectorSearch</code></pre></li>
+<li><h4>Embedding cache</h4><p>Implement <code>CachedEmbedder.embed_documents</code>: work out which texts are missing from the cache, send only those to the real embedder in one call, store and save them, and return vectors in the original order.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab2_vectors</code></pre>
+<details><summary>Hint</summary><p>Compute <code>keys = [self.key("doc", t) for t in texts]</code> first. De-duplicate the missing texts so a text repeated in one batch is embedded once.</p></details></li>
+<li><h4>Run it offline</h4><p>The default embedder is <code>HashingEmbedder</code>: it hashes words and three-letter fragments into 512 numbers. It needs no download, and it matches spelling, not meaning.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m minirag search "how do I undo a bad playback release" --retriever dense --chunks document --k 3</code></pre>
+<pre class="out"><code>dense · 24 chunks (document) · role=engineer
+
+ 1.   0.487  playback-rollback-runbook
+ 2.   0.439  playback-architecture
+ 3.   0.296  playback-error-codes</code></pre>
+<p>It got this one right through the shared fragments "playback" and "release", not because it understood "undo". Try a question with no shared words, like <code>"A customer's TV keeps refusing to play a film they paid for"</code>, and you'll see how little it knows.</p></li>
+<li><h4>Plug in a real model</h4><p>Pick one: everything else stays the same.</p>
+<pre class="cmd"><code><span class="c"># local, via Ollama (setup page)</span>
+<span class="p">$ </span>python3 -m minirag search "A customer's TV keeps refusing to play a film they paid for" --retriever dense --embedder ollama:nomic-embed-text
+<span class="c"># local, via Hugging Face</span>
+<span class="p">$ </span>pip install sentence-transformers
+<span class="p">$ </span>python3 -m minirag search "A customer's TV keeps refusing to play a film they paid for" --retriever dense --embedder st:sentence-transformers/all-MiniLM-L6-v2</code></pre>
+<p>The first run embeds all 112 chunks and caches them in <code>.minirag/cache/</code>; later runs only embed the query.</p></li>
+</ol>
+
+<h3>Experiments</h3>
+<ul class="try">
+<li><b>Paraphrases: keyword vs vector</b>Run these three with <code>--retriever bm25</code> and with a real embedder: "How do I undo a bad playback release?", "Why did the home screen go blank after a catalog deploy in the summer?", "Who signs off on switching a feature off with a kill switch in the middle of an incident?" Note the rank of the right document (rollback runbook, catalog cache postmortem, incident commander guide).<div class="look">Look for: questions phrased in a user's words rather than the document's. You'll score this properly in Module 5 with the <code>paraphrase</code> question type.</div></li>
+<li><b>Exact codes</b>Search <code>PLAY-4019</code> and <code>CATALOG_DEADLINE_MS</code> with the real embedder.<div class="look">Look for: where the error-code table and the timeout standard land compared with BM25. This is the case for hybrid search.</div></li>
+<li><b>What the cache saves you</b>Delete <code>.minirag/cache/</code> and time a search (<code>time python3 -m minirag search ...</code>), then time it again. Open the cache file: how many entries, and how large?<div class="look">Look for: indexing cost dominates the first run. In production that's a batch job, not something a user waits for (Module 7).</div></li>
+<li><b>Two models, one question</b>Compare <code>nomic-embed-text</code> and <code>all-MiniLM-L6-v2</code> on the same five questions.<div class="look">Look for: the model is a parameter you choose with an evaluation, not a constant. Public leaderboards such as MTEB are a starting point, not an answer for your documents.</div></li>
+</ul>
+<div class="done-box"><p><strong>Done when</strong> <code>python3 -m unittest -v tests.test_lab2_vectors</code> passes and you've run dense search with at least the offline embedder.</p><button class="mark-done" type="button" data-lab="2">Mark this lab as done</button></div>
+
+<div class="part more" id="further"><span>GO FURTHER</span><h2>Optional</h2></div>
+<ul>
+<li>Store the vectors in a real vector store: <code>pgvector</code> in Postgres (Docker image <code>pgvector/pgvector</code>), Chroma or LanceDB. Write a small class with the same <code>search(query, k, allow)</code> signature and use it in place of <code>VectorIndex</code>.</li>
+<li>Add an approximate index (<code>hnswlib</code> or FAISS) and measure <em>recall against exact search</em>: the share of the true top 10 the ANN index returns.</li>
+<li>Reading: the <a href="https://www.sbert.net/">Sentence Transformers documentation</a> and the <a href="https://huggingface.co/spaces/mteb/leaderboard">MTEB leaderboard</a>.</li>
+</ul>
+<div class="next"><a href="01-keyword-search.html"><small>← Back</small>Module 1 · Keyword search</a><a href="03-chunking.html"><small>Next →</small>Module 3 · Chunking</a></div>
+<p class="foot">AI ENGINEERING LAB / RAG · Learn it, build it, measure it.</p>
+</div>
+</main>
+<script src="../assets/course-data.js"></script>
+<script src="../assets/raglab.js"></script>
+<script src="../assets/app.js"></script>
+</body>
+</html>

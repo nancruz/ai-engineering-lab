@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Setup · AI Engineering Lab</title>
+<meta name="description" content="Get the RAG course labs running in 15 minutes.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<button class="menu-btn" type="button" aria-label="Open the course menu">☰ Menu</button>
+<aside class="sidebar">
+<a class="brand" href="index.html"><b>ai<i>_</i></b><span>ENGINEERING LAB<small>RAG COURSE</small></span></a>
+<nav class="nav" aria-label="Course">
+<a href="../index.html"><span class="num">←</span>All courses</a>
+<a href="index.html"><span class="num">◈</span>Course home</a>
+<a href="setup.html" aria-current="page"><span class="num">▸</span>Setup</a>
+<p class="nav-label">MODULES</p>
+<a href="modules/01-keyword-search.html" data-lab="1"><span class="num">01</span>Keyword search<span class=tick>✓</span></a>
+<a href="modules/02-embeddings.html" data-lab="2"><span class="num">02</span>Embeddings &amp; vectors<span class=tick>✓</span></a>
+<a href="modules/03-chunking.html" data-lab="3"><span class="num">03</span>Chunking<span class=tick>✓</span></a>
+<a href="modules/04-generation.html" data-lab="4"><span class="num">04</span>Grounded generation<span class=tick>✓</span></a>
+<a href="modules/05-evaluation.html" data-lab="5"><span class="num">05</span>Evaluation<span class=tick>✓</span></a>
+<a href="modules/06-better-retrieval.html" data-lab="6"><span class="num">06</span>Better retrieval<span class=tick>✓</span></a>
+<a href="modules/07-ship-it.html" data-lab="7"><span class="num">07</span>Ship it<span class=tick>✓</span></a>
+<a href="capstone.html" data-lab="8"><span class="num">★</span>Capstone<span class=tick>✓</span></a>
+<p class="nav-label">MORE</p>
+<a href="reference.html"><span class="num">≡</span>Reference</a>
+</nav>
+<div class="side-foot"><span data-count>0 / 8 labs done</span><div class="bar"><span></span></div>Progress is saved in this browser.</div>
+</aside>
+<main class="main" id="main">
+<div class="content">
+<p class="eyebrow"><span class="dot"></span>START HERE · 15 MINUTES</p>
+<h1>Set up your lab</h1>
+<p class="lede">Copy the starter package, check it runs, and meet the knowledge base you'll be searching for the rest of the course.</p>
+
+<h2>1. Copy the starter</h2>
+<p>All labs happen in one package, <code>minirag</code>. Copy the starter into <code>projects/</code> once and work there, so the original stays clean:</p>
+<pre class="cmd"><code><span class="p">$ </span>git clone https://github.com/nancruz/ai-engineering-lab.git
+<span class="p">$ </span>cd ai-engineering-lab
+<span class="p">$ </span>cp -r tracks/rag/starter projects/knowledge-assistant
+<span class="p">$ </span>cd projects/knowledge-assistant
+<span class="p">$ </span>python3 -m minirag doctor</code></pre>
+<p><code>doctor</code> shows where the course data is, how far each lab is, and which optional tools it found:</p>
+<pre class="out"><code>lab                               tests passing
+  1. Keyword search (BM25)          0/20   TODOs left
+  2. Embeddings &amp; vector search     0/13   TODOs left
+  3. Chunking                       1/16   TODOs left
+  ...
+optional
+  · sentence_transformers local embeddings / cross-encoder (Labs 2, 6)
+  · fastapi               HTTP API (Lab 7)
+  · ollama                not running (optional: local models)</code></pre>
+<p>All commands in the course run from <code>projects/knowledge-assistant/</code> unless a step says otherwise.</p>
+
+<h2>2. How a lab works</h2>
+<ol>
+<li>The module page tells you which functions to write. In the code they look like this:
+<pre><code>def idf(self, term):
+    """Inverse document frequency: rare terms count more. Never negative."""
+    # TODO (Lab 1): Implement ln(1 + (N - df + 0.5) / (df + 0.5)) with N = len(self.items).
+    raise NotImplementedError("Lab 1: write BM25Index.idf() in minirag/lexical.py")</code></pre></li>
+<li>Each lab has a test file. Run all of it, or just the part you're on with <code>-k</code>:
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab1_search
+<span class="p">$ </span>python3 -m unittest -v tests.test_lab1_search -k Tokenize</code></pre></li>
+<li>When the tests pass, run the experiments on the page. They're the point of the lab: you change one thing, rerun, and look at what moved.</li>
+<li>Stuck for more than 20 minutes? Compare with <code>tracks/rag/solution/</code>, which has the same layout.</li>
+</ol>
+<p>Labs build on each other. Module 4 uses your BM25 from Module 1 and your chunker from Module 3, so do them in order.</p>
+
+<h2>3. Meet the knowledge base</h2>
+<p><code>tracks/rag/data/docs/</code> holds 24 Markdown documents from <strong>Lumen</strong>, a fictional video-streaming company: runbooks, postmortems, policies, an onboarding guide. They're written to show the problems real RAG systems run into:</p>
+<table>
+<tr><th>You'll find</th><th>Example</th><th>What it tests</th></tr>
+<tr><td>Exact identifiers</td><td><code>PLAY-4012</code>, <code>CATALOG_DEADLINE_MS</code></td><td>Keyword vs vector search</td></tr>
+<tr><td>Archived versions</td><td>the 2024 rollback runbook says "no approval needed"</td><td>Freshness filtering</td></tr>
+<tr><td>Restricted content</td><td><code>emergency-capacity-settings</code> is SRE-only</td><td>Access control before the prompt</td></tr>
+<tr><td>Conditions under headings</td><td>"EU production has one extra rule…"</td><td>Chunk boundaries</td></tr>
+<tr><td>Look-alike documents</td><td>search timeouts (1200 ms) vs catalog timeouts (800 ms)</td><td>Precision, reranking</td></tr>
+<tr><td>Untrusted text</td><td>an imported vendor note containing instructions for AI assistants</td><td>Prompt injection</td></tr>
+</table>
+<p><code>tracks/rag/data/questions.json</code> has 34 questions with labels: which documents are relevant, which passage holds the answer, which facts a correct answer must contain, and which questions must be refused. You'll use them from Module 5.</p>
+<p>The front matter at the top of each file is the metadata the system uses:</p>
+<pre><code>---
+id: emergency-capacity-settings
+title: Emergency capacity settings
+status: current        # current | archived
+access: sre            # all | sre
+updated: 2026-08-18
+---</code></pre>
+
+<h2>4. Optional: real models</h2>
+<p>The labs run without any model: there's a hashing "embedder" and an extractive "LLM" that copies sentences. They're deliberately weak, so you can see what a real model adds. Set up one of these whenever you like. Module 2 is the first place it pays off.</p>
+<div class="grid2">
+<div class="card"><h4>Local and free: Ollama</h4><p class="small">Install from <a href="https://ollama.com">ollama.com</a>, then:</p><pre class="cmd"><code><span class="p">$ </span>ollama pull nomic-embed-text
+<span class="p">$ </span>ollama pull llama3.2:3b</code></pre><p class="small">Use <code>--embedder ollama:nomic-embed-text</code> and <code>--llm ollama:llama3.2:3b</code>. Any other model you pull works the same way.</p></div>
+<div class="card"><h4>Hosted APIs</h4><pre class="cmd"><code><span class="p">$ </span>export OPENAI_API_KEY=...
+<span class="p">$ </span>export ANTHROPIC_API_KEY=...</code></pre><p class="small">Use <code>--llm openai:&lt;model&gt;</code> or <code>--llm anthropic:&lt;model&gt;</code>. For other OpenAI-compatible servers (vLLM, LM Studio, Groq…) also set <code>OPENAI_BASE_URL</code>.</p></div>
+</div>
+<p>For local embedding and reranking models from Hugging Face: <code>pip install sentence-transformers</code>, then <code>--embedder st:sentence-transformers/all-MiniLM-L6-v2</code>.</p>
+
+<h2>5. See where you're heading</h2>
+<p>The reference solution is a finished system. Ask it something before you start:</p>
+<pre class="cmd"><code><span class="p">$ </span>cd ../../tracks/rag/solution
+<span class="p">$ </span>python3 -m minirag ask "What is the current production timeout for catalog API requests?"</code></pre>
+<pre class="out"><code>──── answer (extractive) ────
+Catalog requests use an 800 ms total deadline in production. [S1] The client opens its circuit
+breaker when 50% of requests fail across a window of 20 requests within 10 seconds. [S2]
+
+  [S1] catalog-api-timeouts › Deadline
+  [S2] catalog-api-timeouts › Circuit breaker</code></pre>
+<p>It found the current document, not the archived one that says 3000 ms, and cited the exact section. By Module 4 your own copy will do the same.</p>
+<div class="next"><a href="index.html"><small>← Back</small>Course home</a><a href="modules/01-keyword-search.html"><small>Next →</small>Module 1 · Keyword search</a></div>
+<p class="foot">AI ENGINEERING LAB / RAG · Learn it, build it, measure it.</p>
+</div>
+</main>
+<script src="assets/course-data.js"></script>
+<script src="assets/raglab.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

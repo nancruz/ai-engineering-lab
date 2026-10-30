@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 3 · Chunking · AI Engineering Lab</title>
+<meta name="description" content="How to split documents into retrievable chunks without losing meaning, explained interactively and built in Python.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<button class="menu-btn" type="button" aria-label="Open the course menu">☰ Menu</button>
+<aside class="sidebar">
+<a class="brand" href="../index.html"><b>ai<i>_</i></b><span>ENGINEERING LAB<small>RAG COURSE</small></span></a>
+<nav class="nav" aria-label="Course">
+<a href="../../index.html"><span class="num">←</span>All courses</a>
+<a href="../index.html"><span class="num">◈</span>Course home</a>
+<a href="../setup.html"><span class="num">▸</span>Setup</a>
+<p class="nav-label">MODULES</p>
+<a href="../modules/01-keyword-search.html" data-lab="1"><span class="num">01</span>Keyword search<span class=tick>✓</span></a>
+<a href="../modules/02-embeddings.html" data-lab="2"><span class="num">02</span>Embeddings &amp; vectors<span class=tick>✓</span></a>
+<a href="../modules/03-chunking.html" aria-current="page" data-lab="3"><span class="num">03</span>Chunking<span class=tick>✓</span></a>
+<a href="../modules/04-generation.html" data-lab="4"><span class="num">04</span>Grounded generation<span class=tick>✓</span></a>
+<a href="../modules/05-evaluation.html" data-lab="5"><span class="num">05</span>Evaluation<span class=tick>✓</span></a>
+<a href="../modules/06-better-retrieval.html" data-lab="6"><span class="num">06</span>Better retrieval<span class=tick>✓</span></a>
+<a href="../modules/07-ship-it.html" data-lab="7"><span class="num">07</span>Ship it<span class=tick>✓</span></a>
+<a href="../capstone.html" data-lab="8"><span class="num">★</span>Capstone<span class=tick>✓</span></a>
+<p class="nav-label">MORE</p>
+<a href="../reference.html"><span class="num">≡</span>Reference</a>
+</nav>
+<div class="side-foot"><span data-count>0 / 8 labs done</span><div class="bar"><span></span></div>Progress is saved in this browser.</div>
+</aside>
+<main class="main" id="main">
+<div class="content">
+<p class="eyebrow"><span class="dot"></span>MODULE 03 · INGEST</p>
+<h1>Cut documents where meaning allows</h1>
+<p class="lede">Retrieval returns chunks, not documents. How you cut decides what can be found and what still makes sense once it's found. You'll compare fixed windows, paragraphs and heading-aware sections on a real runbook, then build all three with exact provenance.</p>
+<div class="chips"><span class="chip">Learn 20 min</span><span class="chip">Build ≈ 3 h</span><span class="chip">chunking.py</span></div>
+<nav class="tabs"><a class="learn" href="#learn">Learn</a><a class="build" href="#build">Build · Lab 3</a><a href="#further">Go further</a></nav>
+
+<div class="part learn" id="learn"><span>LEARN</span><h2>Choosing the unit of retrieval</h2></div>
+<h3>Why not retrieve whole documents?</h3>
+<p>Modules 1 and 2 searched whole documents. That works on 24 short files, but it doesn't scale:</p>
+<ul>
+<li><strong>Cost and limits.</strong> Every retrieved token goes into the prompt, and you pay for it on every question. A 40-page handbook doesn't fit.</li>
+<li><strong>Precision.</strong> A long document matches many queries a little. A focused section matches the right query a lot.</li>
+<li><strong>Vectors blur.</strong> One embedding of a whole document averages all its topics into a single direction.</li>
+</ul>
+<p>Chunks too small have the opposite problem: "Roll back immediately." means something very different in staging and in production. A chunk needs enough context to be understood <em>on its own</em>, because that's how the model will see it.</p>
+
+<h3>Three ways to cut</h3>
+<div class="grid2">
+<div class="card"><h4>Fixed windows</h4><p class="small">Every <em>N</em> characters, optionally overlapping. Simple, predictable sizes, and blind to structure: it cuts mid-sentence and mid-table. Overlap reduces the damage at the cost of duplicated text.</p></div>
+<div class="card"><h4>Paragraphs</h4><p class="small">Split on blank lines and pack whole paragraphs into chunks up to <em>N</em> characters. Sentences survive; a section's heading may still end up in a different chunk from its content.</p></div>
+<div class="card"><h4>Headings (structure-aware)</h4><p class="small">One chunk per Markdown section, carrying its heading path ("Who approves"). Long sections are packed by paragraph. Uses the structure the author already wrote.</p></div>
+<div class="card"><h4>Add context to every chunk</h4><p class="small">Prefix the document title and section heading to the text you index, so "If the check fails…" is indexed as part of "Playback rollback runbook › EU production". This course does that in <code>Chunk.search_text()</code>.</p></div>
+</div>
+
+<div class="widget wide" data-widget="chunker"><div class="widget-head"><span class="tag">TRY IT</span><h3>Chunking playground</h3><p>Real documents from the knowledge base</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+<p>With the rollback runbook selected:</p>
+<ul>
+<li><strong>fixed, 300</strong>: the rule "If the check fails, do not roll back in the EU region" is cut in half. One chunk ends with "do not roll back", the next starts with "in the EU region". Retrieved alone, the first half says something the runbook never said.</li>
+<li>Add <strong>overlap</strong> and watch the duplication percentage climb. Overlap helps a sentence that straddles a cut, not a condition three paragraphs away.</li>
+<li><strong>headings</strong>: each section is its own chunk and the EU rule stays whole. Now pick <code>on-call-handbook</code> and lower the size to 300: long sections are split by paragraph, but every piece keeps its heading.</li>
+</ul>
+
+<h3>Keep provenance</h3>
+<p>Every chunk in <code>minirag</code> records its document id, heading path and exact character offsets: <code>doc.body[chunk.start:chunk.end] == chunk.text</code>. That one property gives you citations that point to the exact passage, highlighting in a UI, and re-indexing only what changed (Module 7). Don't throw it away by cleaning text after splitting.</p>
+<div class="warn"><p><strong>There's no universally best chunk size.</strong> It depends on your documents, your questions and your model's context window. Common starting points are 200–1,000 tokens. Pick one with an evaluation; in Module 5 you'll compare these strategies on 28 labelled questions.</p></div>
+<div class="takeaways"><h3>Key takeaways</h3><ul>
+<li>Chunking trades precision and cost (small) against self-contained meaning (large).</li>
+<li>Structure-aware chunking keeps rules with their conditions; adding title and heading context helps both search and the model.</li>
+<li>Exact offsets make citations, highlighting and incremental indexing possible.</li>
+</ul></div>
+
+<div class="part build" id="build"><span>BUILD</span><h2>Lab 3: three chunkers with exact offsets</h2></div>
+<div class="lab-goal"><p><strong>Goal:</strong> implement fixed, paragraph and heading-aware chunking, all returning spans whose text you can reconstruct exactly.</p><p class="files">You write, in <code>minirag/chunking.py</code>: <code>fixed_spans</code>, <code>paragraph_spans</code>, <code>pack_spans</code>, <code>section_spans</code>. Supplied: <code>headings()</code>, <code>strip_span()</code>, and <code>chunk_document()</code>, which wires them together.</p></div>
+<p>All four functions work on <strong>spans</strong>, <code>(start, end)</code> offsets into the text, rather than on substrings. That's what keeps provenance exact.</p>
+<ol class="steps">
+<li><h4>Fixed windows</h4><p><code>fixed_spans(text, start, end, size, overlap)</code>: windows of <code>size</code> characters, each starting <code>size - overlap</code> after the previous one, stopping after the window that reaches <code>end</code>. Skip windows that are only whitespace.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab3_chunking -k FixedWindows</code></pre></li>
+<li><h4>Paragraphs and packing</h4><p><code>paragraph_spans</code> finds paragraphs between blank lines (the <code>PARAGRAPH_BREAK</code> regex is supplied) and strips them. <code>pack_spans</code> merges consecutive spans while the merged span fits in <code>size</code>, and cuts any single span that's too long into fixed windows.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab3_chunking -k Paragraphs</code></pre>
+<details><summary>Hint</summary><p><code>PARAGRAPH_BREAK.finditer(text, start, end)</code> searches only inside the range and returns offsets into <code>text</code>. A paragraph runs from the end of one break to the start of the next.</p></details></li>
+<li><h4>Sections</h4><p><code>section_spans(body)</code>: a section runs from one heading to the next. Use the supplied <code>headings(body)</code>, which already ignores <code>#</code> lines inside code blocks. Drop sections that contain only their heading line; their name survives in the heading paths of their subsections.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab3_chunking</code></pre></li>
+<li><h4>Look at the chunks</h4>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m minirag chunks playback-rollback-runbook --chunks fixed --size 300
+<span class="p">$ </span>python3 -m minirag chunks playback-rollback-runbook --chunks headings</code></pre>
+<pre class="out"><code>playback-rollback-runbook: 6 chunks · strategy=headings size=800 overlap=0
+
+── playback-rollback-runbook#0  [0:192]  192 chars
+   # Playback rollback runbook This runbook explains how to restore the previous release …
+── playback-rollback-runbook#1  [194:558]  364 chars  · When to roll back
+   ## When to roll back Roll back production when either condition is true: - The canary …
+── playback-rollback-runbook#2  [560:895]  335 chars  · Who approves
+   ...</code></pre></li>
+<li><h4>Search with chunks</h4><p>From now on, <code>--chunks headings</code> (800 characters) is the default. Compare what reaches the top for a question about the EU rule:</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m minirag search "anything extra to check before rolling back playback in the EU" --chunks fixed --size 300 --k 3
+<span class="p">$ </span>python3 -m minirag search "anything extra to check before rolling back playback in the EU" --k 3</code></pre>
+<p>With fixed windows the top hit is chunk #5: it starts mid-word inside <em>Steps</em> and stops at "do not roll back"; the words "in the EU region" are in chunk #6. With headings, the whole <em>EU production</em> section is one chunk and comes first.</p></li>
+</ol>
+
+<h3>Experiments</h3>
+<ul class="try">
+<li><b>Size sweep</b>Run <code>chunks on-call-handbook</code> with <code>--chunks headings --size 200</code>, <code>400</code> and <code>1200</code>. How many chunks? Do any read badly on their own?<div class="look">Look for: the size where chunks stop being self-contained. Keep a note; you'll check it against numbers in Module 5.</div></li>
+<li><b>Context headers</b>Edit <code>Chunk.search_text()</code> to return only <code>self.text</code>, then rerun the EU search above with <code>--chunks headings</code>. Put it back afterwards.<div class="look">Look for: how much the title and heading in the indexed text contribute to ranking. This is the cheap version of Anthropic's "contextual retrieval", which has an LLM write that context.</div></li>
+<li><b>Tables and code</b>Chunk <code>playback-error-codes</code> with <code>--chunks fixed --size 200</code>. What happens to the table rows?<div class="look">Look for: a table row separated from its header row loses its column meanings. Structure-aware chunkers often treat tables and code blocks as units that can't be split.</div></li>
+</ul>
+<div class="done-box"><p><strong>Done when</strong> <code>python3 -m unittest -v tests.test_lab3_chunking</code> passes: every chunk reconstructs exactly, respects the size limit, and the EU rule keeps its heading.</p><button class="mark-done" type="button" data-lab="3">Mark this lab as done</button></div>
+
+<div class="part more" id="further"><span>GO FURTHER</span><h2>Optional</h2></div>
+<ul>
+<li>Add a <code>"sentences"</code> strategy that packs sentences instead of paragraphs, and a "parent document" mode: retrieve small chunks, but put the whole section into the prompt.</li>
+<li>Read Anthropic's <a href="https://www.anthropic.com/engineering/contextual-retrieval">Introducing Contextual Retrieval</a>: generate a one-sentence context for each chunk with an LLM and index it with the chunk.</li>
+<li>Ingest a PDF: extract text with <code>pypdf</code> and see how much structure you lose compared with Markdown.</li>
+</ul>
+<div class="next"><a href="02-embeddings.html"><small>← Back</small>Module 2 · Embeddings</a><a href="04-generation.html"><small>Next →</small>Module 4 · Grounded generation</a></div>
+<p class="foot">AI ENGINEERING LAB / RAG · Learn it, build it, measure it.</p>
+</div>
+</main>
+<script src="../assets/course-data.js"></script>
+<script src="../assets/raglab.js"></script>
+<script src="../assets/app.js"></script>
+</body>
+</html>
