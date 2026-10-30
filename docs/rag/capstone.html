@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Capstone · Your own documents · AI Engineering Lab</title>
+<meta name="description" content="Apply the RAG system to real documentation, build an evaluation set and improve it with evidence.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<button class="menu-btn" type="button" aria-label="Open the course menu">☰ Menu</button>
+<aside class="sidebar">
+<a class="brand" href="index.html"><b>ai<i>_</i></b><span>ENGINEERING LAB<small>RAG COURSE</small></span></a>
+<nav class="nav" aria-label="Course">
+<a href="../index.html"><span class="num">←</span>All courses</a>
+<a href="index.html"><span class="num">◈</span>Course home</a>
+<a href="setup.html"><span class="num">▸</span>Setup</a>
+<p class="nav-label">MODULES</p>
+<a href="modules/01-keyword-search.html" data-lab="1"><span class="num">01</span>Keyword search<span class=tick>✓</span></a>
+<a href="modules/02-embeddings.html" data-lab="2"><span class="num">02</span>Embeddings &amp; vectors<span class=tick>✓</span></a>
+<a href="modules/03-chunking.html" data-lab="3"><span class="num">03</span>Chunking<span class=tick>✓</span></a>
+<a href="modules/04-generation.html" data-lab="4"><span class="num">04</span>Grounded generation<span class=tick>✓</span></a>
+<a href="modules/05-evaluation.html" data-lab="5"><span class="num">05</span>Evaluation<span class=tick>✓</span></a>
+<a href="modules/06-better-retrieval.html" data-lab="6"><span class="num">06</span>Better retrieval<span class=tick>✓</span></a>
+<a href="modules/07-ship-it.html" data-lab="7"><span class="num">07</span>Ship it<span class=tick>✓</span></a>
+<a href="capstone.html" aria-current="page" data-lab="8"><span class="num">★</span>Capstone<span class=tick>✓</span></a>
+<p class="nav-label">MORE</p>
+<a href="reference.html"><span class="num">≡</span>Reference</a>
+</nav>
+<div class="side-foot"><span data-count>0 / 8 labs done</span><div class="bar"><span></span></div>Progress is saved in this browser.</div>
+</aside>
+<main class="main" id="main">
+<div class="content">
+<p class="eyebrow"><span class="dot"></span>CAPSTONE · 6–10 HOURS</p>
+<h1>Make it work on documents you care about</h1>
+<p class="lede">The Lumen knowledge base was designed to teach. Real documentation is messier: longer pages, inconsistent structure, questions nobody anticipated. In the capstone you point your system at a real document set, write the evaluation set yourself, and improve the system one measured change at a time. The result is a project you can show and explain in an interview.</p>
+<div class="chips"><span class="chip">no new code required</span><span class="chip">your choices, your numbers</span></div>
+
+<h2>1. Pick a document set</h2>
+<p>Choose 30–200 Markdown pages you understand well enough to judge answers. Good options:</p>
+<ul>
+<li><strong>Your team's documentation</strong>: runbooks, ADRs, onboarding notes. Check that you're allowed to copy it, keep it out of public repositories, and remove credentials and personal data first. The data retention policy in the Lumen docs is a reasonable checklist.</li>
+<li><strong>Open-source documentation</strong> in Markdown: for example the docs folders of FastAPI, Kubernetes or PostgreSQL's wiki exports. Note the license in your README.</li>
+</ul>
+<p>Put the files in one folder. Front matter is optional: without it, the id is the file name, the status is <code>current</code> and access is <code>all</code>. Add <code>status: archived</code> or <code>access: sre</code> where it matters.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m minirag search "your first question" --docs ~/capstone/docs
+<span class="p">$ </span>python3 -m minirag chunks some-page --docs ~/capstone/docs</code></pre>
+
+<h2>2. Write 25 questions before tuning anything</h2>
+<p>This is the most valuable part of the capstone, and of real RAG work. Write questions the way real users would ask them, and label them from the documents, not from what your system returns. Aim for a spread of types:</p>
+<table>
+<tr><th>Type</th><th>How many</th><th>Example shape</th></tr>
+<tr><td><code>exact</code></td><td>5</td><td>names a config key, command, error or version</td></tr>
+<tr><td><code>paraphrase</code></td><td>6</td><td>describes the problem in a user's words, not the doc's</td></tr>
+<tr><td><code>multi-doc</code></td><td>4</td><td>needs two pages to answer completely</td></tr>
+<tr><td><code>procedure</code></td><td>4</td><td>"how do I…": the answer is a sequence of steps</td></tr>
+<tr><td><code>missing</code></td><td>4</td><td>sounds answerable but the docs don't say: the system must abstain</td></tr>
+<tr><td>your call</td><td>2+</td><td>freshness, access, conversational follow-ups…</td></tr>
+</table>
+<p>Same format as the course questions. Only <code>id</code> and <code>question</code> are required; the rest makes the metrics work:</p>
+<pre><code>[
+  {"id": "c01", "question": "How do I rotate the database password without downtime?",
+   "relevant": ["db-credentials"], "evidence": ["both passwords are valid for one hour"],
+   "must_include": ["one hour"], "type": "procedure", "split": "dev"},
+  {"id": "c02", "question": "Who owns the billing service?", "relevant": [], "type": "missing", "split": "dev"}
+]</code></pre>
+<p>Keep 5 of them with <code>"split": "test"</code> and don't look at their results until the end.</p>
+
+<h2>3. Baseline, then three measured improvements</h2>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m minirag eval --docs ~/capstone/docs --questions ~/capstone/questions.json \
+    --compare bm25,hybrid --answers --llm ollama:llama3.2:3b --show-failures --out runs/baseline.json</code></pre>
+<p>Read every failure. Group them by cause: wrong chunk boundaries? vocabulary mismatch? the answer spans two pages? the model ignored the sources? Then pick the three changes you expect to help most (chunk size or strategy, embedder, hybrid, reranker, multi-query, <code>k</code>, prompt wording, a better model) and for each one:</p>
+<ol>
+<li>change one thing;</li>
+<li>rerun the same command with a new <code>--out</code> file;</li>
+<li>keep it only if the numbers improve on the question types it was meant to fix, without breaking others.</li>
+</ol>
+<p>Finish with one run on the test split.</p>
+
+<h2>4. Ship it and write it up</h2>
+<p>Serve the final configuration with Docker (Module 7) and write a README with:</p>
+<ul>
+<li>the problem and the documents (and their license or permission);</li>
+<li>an architecture diagram of your final pipeline;</li>
+<li>a results table: baseline and each change, on dev and finally on test, with tokens and latency;</li>
+<li>three failures you couldn't fix and why;</li>
+<li>what you'd do next with more time or budget.</li>
+</ul>
+<div class="key"><p><strong>That README is the interview answer.</strong> "I built RAG" is common. Something like "hybrid search raised evidence recall on paraphrase questions from 0.6 to 0.85 for 40 ms more latency; the reranker didn't pay for itself, so I removed it" is not.</p></div>
+<div class="done-box"><p><strong>Done when</strong> you have a question set, a baseline, three measured changes, a test-split result and a README that explains the decisions.</p><button class="mark-done" type="button" data-lab="8">Mark the capstone as done</button></div>
+
+<h2>Where to go next</h2>
+<ul>
+<li><a href="../agents/index.html">The agents course</a>: give the model tools (including your retriever) and let it decide what to call. Everything from Module 4 about untrusted text and least privilege gets more important.</li>
+<li>Structured data: add a tool that answers from SQL tables when the question is about numbers, and route between it and retrieval.</li>
+<li>Fine-tune an embedding model on question/passage pairs from your evaluation set and measure it against the off-the-shelf model.</li>
+</ul>
+<div class="next"><a href="modules/07-ship-it.html"><small>← Back</small>Module 7 · Ship it</a><a href="reference.html"><small>Next →</small>Reference</a></div>
+<p class="foot">AI ENGINEERING LAB / RAG · Learn it, build it, measure it.</p>
+</div>
+</main>
+<script src="assets/course-data.js"></script>
+<script src="assets/raglab.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

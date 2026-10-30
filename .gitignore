@@ -6,9 +6,9 @@ venv/
 .env.*
 !.env.example
 .DS_Store
-tracks/rag/lab/faulty.json
-tracks/rag/lab/keyword.json
-tracks/rag/lab/bm25.json
+# minirag runtime files (embedding cache, SQLite index, traces, eval runs)
+.minirag/
+runs/
 
 # Learner runtime, secrets and generated heavyweight artifacts
 **/.terraform/
@@ -17,10 +17,7 @@ tracks/rag/lab/bm25.json
 *.tfvars
 !*.example.tfvars
 *.tfplan
-projects/knowledge-assistant/artifacts/
 projects/knowledge-assistant/data/private/
-projects/knowledge-assistant/.cache/
-projects/knowledge-assistant/models/
 projects/ops-agent/artifacts/runs/
 projects/ops-agent/artifacts/evals/
 projects/ops-agent/.cache/

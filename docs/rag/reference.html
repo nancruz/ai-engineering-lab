@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reference · AI Engineering Lab</title>
+<meta name="description" content="minirag commands, settings, package map and glossary for the RAG course.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<button class="menu-btn" type="button" aria-label="Open the course menu">☰ Menu</button>
+<aside class="sidebar">
+<a class="brand" href="index.html"><b>ai<i>_</i></b><span>ENGINEERING LAB<small>RAG COURSE</small></span></a>
+<nav class="nav" aria-label="Course">
+<a href="../index.html"><span class="num">←</span>All courses</a>
+<a href="index.html"><span class="num">◈</span>Course home</a>
+<a href="setup.html"><span class="num">▸</span>Setup</a>
+<p class="nav-label">MODULES</p>
+<a href="modules/01-keyword-search.html" data-lab="1"><span class="num">01</span>Keyword search<span class=tick>✓</span></a>
+<a href="modules/02-embeddings.html" data-lab="2"><span class="num">02</span>Embeddings &amp; vectors<span class=tick>✓</span></a>
+<a href="modules/03-chunking.html" data-lab="3"><span class="num">03</span>Chunking<span class=tick>✓</span></a>
+<a href="modules/04-generation.html" data-lab="4"><span class="num">04</span>Grounded generation<span class=tick>✓</span></a>
+<a href="modules/05-evaluation.html" data-lab="5"><span class="num">05</span>Evaluation<span class=tick>✓</span></a>
+<a href="modules/06-better-retrieval.html" data-lab="6"><span class="num">06</span>Better retrieval<span class=tick>✓</span></a>
+<a href="modules/07-ship-it.html" data-lab="7"><span class="num">07</span>Ship it<span class=tick>✓</span></a>
+<a href="capstone.html" data-lab="8"><span class="num">★</span>Capstone<span class=tick>✓</span></a>
+<p class="nav-label">MORE</p>
+<a href="reference.html" aria-current="page"><span class="num">≡</span>Reference</a>
+</nav>
+<div class="side-foot"><span data-count>0 / 8 labs done</span><div class="bar"><span></span></div>Progress is saved in this browser.</div>
+</aside>
+<main class="main" id="main">
+<div class="content">
+<p class="eyebrow"><span class="dot"></span>REFERENCE</p>
+<h1>Commands, code and terms</h1>
+<p class="lede">Everything in one place for when you're in the middle of a lab.</p>
+
+<h2>Commands</h2>
+<p>Run from your project folder (<code>projects/knowledge-assistant/</code>). Every command takes the shared options below.</p>
+<table>
+<tr><th>Command</th><th>What it does</th><th>Useful options</th></tr>
+<tr><td><code>doctor</code></td><td>Lab progress (runs each lab's tests), data location, optional tools</td><td></td></tr>
+<tr><td><code>search "query"</code></td><td>Retrieve chunks and show their scores</td><td><code>--explain</code> (BM25 term scores)</td></tr>
+<tr><td><code>chunks DOC_ID</code></td><td>Show how one document is chunked</td><td><code>--full</code></td></tr>
+<tr><td><code>ask "question"</code></td><td>Answer with citations</td><td><code>--show-prompt</code></td></tr>
+<tr><td><code>eval</code></td><td>Score retrieval (and answers) on the labelled questions</td><td><code>--compare a,b,c</code> <code>--answers</code> <code>--judge LLM</code> <code>--split dev|test|all</code> <code>--type T</code> <code>--questions FILE</code> <code>--show-failures</code> <code>--out FILE</code></td></tr>
+<tr><td><code>index</code></td><td>Sync documents into the SQLite index</td><td><code>--db PATH</code></td></tr>
+<tr><td><code>serve</code></td><td>Run the HTTP API (<code>POST /ask</code>, <code>GET /health</code>)</td><td><code>--host</code> <code>--port</code></td></tr>
+</table>
+<h3>Shared options</h3>
+<table>
+<tr><th>Option</th><th>Default</th><th>Values</th></tr>
+<tr><td><code>--retriever</code></td><td>bm25</td><td><code>bm25</code>, <code>dense</code>, <code>hybrid</code>, plus <code>+rerank</code> and/or <code>+multiquery</code></td></tr>
+<tr><td><code>--chunks</code> / <code>--size</code> / <code>--overlap</code></td><td>headings / 800 / 0</td><td><code>document</code>, <code>fixed</code>, <code>paragraph</code>, <code>headings</code>; sizes in characters</td></tr>
+<tr><td><code>--k</code></td><td>5</td><td>chunks retrieved per question</td></tr>
+<tr><td><code>--k1</code> / <code>--b</code></td><td>1.5 / 0.75</td><td>BM25 parameters</td></tr>
+<tr><td><code>--embedder</code></td><td>hashing</td><td><code>hashing</code>, <code>ollama:&lt;model&gt;</code>, <code>st:&lt;model&gt;</code>, <code>openai:&lt;model&gt;</code></td></tr>
+<tr><td><code>--reranker</code></td><td>overlap</td><td><code>overlap</code> (toy), <code>cross-encoder[:model]</code>, <code>llm</code></td></tr>
+<tr><td><code>--llm</code></td><td>extractive</td><td><code>extractive</code> (no model), <code>ollama:&lt;model&gt;</code>, <code>openai:&lt;model&gt;</code>, <code>anthropic:&lt;model&gt;</code></td></tr>
+<tr><td><code>--budget</code></td><td>1500</td><td>context budget in estimated tokens</td></tr>
+<tr><td><code>--role</code> / <code>--archived</code></td><td>engineer / off</td><td><code>engineer</code>, <code>sre</code>; include archived documents</td></tr>
+<tr><td><code>--docs</code> / <code>--db</code></td><td>course data / in memory</td><td>a folder of Markdown files; a SQLite file</td></tr>
+</table>
+<p>Environment variables: <code>MINIRAG_DATA</code> (folder with <code>docs/</code> and <code>questions.json</code>), <code>MINIRAG_LLM</code>, <code>MINIRAG_RETRIEVER</code>, <code>MINIRAG_EMBEDDER</code>, <code>MINIRAG_RERANKER</code>, <code>MINIRAG_DB</code> (defaults for the options above), <code>OLLAMA_HOST</code>, <code>OPENAI_API_KEY</code>, <code>OPENAI_BASE_URL</code>, <code>ANTHROPIC_API_KEY</code>.</p>
+
+<h2>The package</h2>
+<table>
+<tr><th>File</th><th>Lab</th><th>Contents</th></tr>
+<tr><td><code>documents.py</code></td><td>supplied</td><td>Markdown + front-matter loader, question loader, data discovery</td></tr>
+<tr><td><code>text.py</code>, <code>lexical.py</code></td><td>1</td><td>tokenizer; inverted index and BM25</td></tr>
+<tr><td><code>embeddings.py</code>, <code>vectors.py</code></td><td>2</td><td>cosine, normalize, embedding cache, embedder adapters; exact vector search</td></tr>
+<tr><td><code>chunking.py</code></td><td>3</td><td>chunk spans and the <code>Chunk</code> type</td></tr>
+<tr><td><code>retrieval.py</code></td><td>4, 6</td><td>access filter; BM25, dense, hybrid, rerank and multi-query retrievers</td></tr>
+<tr><td><code>generation.py</code></td><td>4</td><td>system prompt, context packing, messages, citation parsing, <code>ask()</code></td></tr>
+<tr><td><code>llm.py</code>, <code>net.py</code></td><td>supplied</td><td>extractive baseline, test double, Ollama / OpenAI-compatible / Anthropic adapters</td></tr>
+<tr><td><code>evaluation.py</code></td><td>5</td><td>metrics, harness, answer checks, LLM judge</td></tr>
+<tr><td><code>hybrid.py</code>, <code>rerank.py</code>, <code>query.py</code></td><td>6</td><td>RRF; rerankers; multi-query and HyDE</td></tr>
+<tr><td><code>store.py</code>, <code>service.py</code></td><td>7</td><td>SQLite index with incremental sync; HTTP service</td></tr>
+<tr><td><code>pipeline.py</code>, <code>cli.py</code></td><td>supplied</td><td>builds a configured system from settings; the command line</td></tr>
+</table>
+<p>Code on GitHub: <a href="https://github.com/nancruz/ai-engineering-lab/tree/main/tracks/rag/starter">starter</a> · <a href="https://github.com/nancruz/ai-engineering-lab/tree/main/tracks/rag/solution">solution</a> · <a href="https://github.com/nancruz/ai-engineering-lab/tree/main/tracks/rag/data">data</a>.</p>
+
+<h2>Glossary</h2>
+<table>
+<tr><td><strong>Abstention</strong></td><td>Answering "I don't know" when the sources don't contain the answer. Often the correct output.</td></tr>
+<tr><td><strong>ANN</strong></td><td>Approximate nearest neighbour search (e.g. HNSW): fast vector search that may miss some true neighbours.</td></tr>
+<tr><td><strong>BM25</strong></td><td>Keyword ranking function using term rarity (IDF), saturated term frequency (k1) and length normalization (b).</td></tr>
+<tr><td><strong>Chunk</strong></td><td>The unit that is indexed and retrieved: a slice of a document with its id, heading and offsets.</td></tr>
+<tr><td><strong>Context window</strong></td><td>The maximum number of tokens a model can read in one request, prompt and answer included.</td></tr>
+<tr><td><strong>Cosine similarity</strong></td><td>Cosine of the angle between two vectors; equals the dot product for normalized vectors.</td></tr>
+<tr><td><strong>Cross-encoder</strong></td><td>A model that scores a (question, passage) pair by reading both together; used for reranking.</td></tr>
+<tr><td><strong>Embedding</strong></td><td>A vector representation of text in which similar meanings point in similar directions.</td></tr>
+<tr><td><strong>Evidence found</strong></td><td>This course's passage-level metric: the share of labelled evidence strings inside the retrieved chunks.</td></tr>
+<tr><td><strong>Faithfulness</strong></td><td>Whether an answer's claims are supported by its sources (often judged by an LLM).</td></tr>
+<tr><td><strong>Hybrid search</strong></td><td>Combining keyword and vector retrieval, usually with reciprocal rank fusion.</td></tr>
+<tr><td><strong>IDF</strong></td><td>Inverse document frequency: a term's weight, higher when fewer documents contain it.</td></tr>
+<tr><td><strong>Inverted index</strong></td><td>Map from each term to the documents that contain it.</td></tr>
+<tr><td><strong>MRR, nDCG, recall@k</strong></td><td>Ranking metrics: position of the first hit; graded credit by position; share of relevant items found.</td></tr>
+<tr><td><strong>Prompt injection</strong></td><td>Instructions hidden in input text (here, retrieved documents) that try to change the model's behaviour.</td></tr>
+<tr><td><strong>Reranker</strong></td><td>A second-stage model that reorders a shortlist of candidates more precisely.</td></tr>
+<tr><td><strong>RRF</strong></td><td>Reciprocal rank fusion: merge rankings by summing 1 / (c + rank).</td></tr>
+<tr><td><strong>Token</strong></td><td>The unit models read and bill: roughly ¾ of an English word, about 4 characters.</td></tr>
+</table>
+
+<h2>Reading list</h2>
+<ul>
+<li>Lewis et al. (2020), <a href="https://arxiv.org/abs/2005.11401">Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks</a>: the paper that named RAG.</li>
+<li>Robertson &amp; Zaragoza, <a href="https://www.staff.city.ac.uk/~sbrp622/papers/foundations_bm25_review.pdf">The Probabilistic Relevance Framework: BM25 and Beyond</a>.</li>
+<li><a href="https://www.sbert.net/">Sentence Transformers documentation</a>: embeddings, cross-encoders, retrieve &amp; re-rank.</li>
+<li>Anthropic, <a href="https://www.anthropic.com/engineering/contextual-retrieval">Introducing Contextual Retrieval</a>.</li>
+<li>Liu et al. (2023), <a href="https://arxiv.org/abs/2307.03172">Lost in the Middle</a>.</li>
+<li>Cormack et al. (2009), <a href="https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf">Reciprocal Rank Fusion</a>.</li>
+<li><a href="https://docs.ragas.io/">Ragas</a> documentation, for RAG evaluation metrics.</li>
+</ul>
+<div class="next"><a href="capstone.html"><small>← Back</small>Capstone</a><a href="index.html"><small>↑</small>Course home</a></div>
+<p class="foot">AI ENGINEERING LAB / RAG · Learn it, build it, measure it.</p>
+</div>
+</main>
+<script src="assets/course-data.js"></script>
+<script src="assets/raglab.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -58,7 +58,7 @@
     Object.entries(schema.properties||{}).forEach(([name,prop])=>{if(prop.type==='string'&&!('enum' in prop||'pattern' in prop||'maxLength' in prop))notes.push(`Parameter ${name} accepts any string; add enum, pattern or maxLength.`);});
     return notes;
   }
-  // ------------------------------------------------------------ BM25 (same rules as tracks/rag/lab/retrieval.py)
+  // ------------------------------------------------------------ BM25 (same rules as tracks/agents/lab/retrieval.py)
   const tokens=s=>(s.toLowerCase().match(/[a-z0-9]+/g)||[]);
   const eligible=(d,q)=>d.roles.includes(q.role)&&(q.current_only===false||d.status==='current');
   function retrieve(q,docs,k=3){

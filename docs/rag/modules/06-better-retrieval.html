@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 6 · Better retrieval · AI Engineering Lab</title>
+<meta name="description" content="Hybrid search with reciprocal rank fusion, reranking and query rewriting, explained interactively and built in Python.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<button class="menu-btn" type="button" aria-label="Open the course menu">☰ Menu</button>
+<aside class="sidebar">
+<a class="brand" href="../index.html"><b>ai<i>_</i></b><span>ENGINEERING LAB<small>RAG COURSE</small></span></a>
+<nav class="nav" aria-label="Course">
+<a href="../../index.html"><span class="num">←</span>All courses</a>
+<a href="../index.html"><span class="num">◈</span>Course home</a>
+<a href="../setup.html"><span class="num">▸</span>Setup</a>
+<p class="nav-label">MODULES</p>
+<a href="../modules/01-keyword-search.html" data-lab="1"><span class="num">01</span>Keyword search<span class=tick>✓</span></a>
+<a href="../modules/02-embeddings.html" data-lab="2"><span class="num">02</span>Embeddings &amp; vectors<span class=tick>✓</span></a>
+<a href="../modules/03-chunking.html" data-lab="3"><span class="num">03</span>Chunking<span class=tick>✓</span></a>
+<a href="../modules/04-generation.html" data-lab="4"><span class="num">04</span>Grounded generation<span class=tick>✓</span></a>
+<a href="../modules/05-evaluation.html" data-lab="5"><span class="num">05</span>Evaluation<span class=tick>✓</span></a>
+<a href="../modules/06-better-retrieval.html" aria-current="page" data-lab="6"><span class="num">06</span>Better retrieval<span class=tick>✓</span></a>
+<a href="../modules/07-ship-it.html" data-lab="7"><span class="num">07</span>Ship it<span class=tick>✓</span></a>
+<a href="../capstone.html" data-lab="8"><span class="num">★</span>Capstone<span class=tick>✓</span></a>
+<p class="nav-label">MORE</p>
+<a href="../reference.html"><span class="num">≡</span>Reference</a>
+</nav>
+<div class="side-foot"><span data-count>0 / 8 labs done</span><div class="bar"><span></span></div>Progress is saved in this browser.</div>
+</aside>
+<main class="main" id="main">
+<div class="content">
+<p class="eyebrow"><span class="dot"></span>MODULE 06 · IMPROVE</p>
+<h1>Better retrieval, proven with numbers</h1>
+<p class="lede">The three upgrades most production RAG systems use: combine keyword and vector search, rerank a shortlist with a more careful model, and rewrite the question before searching. Each costs latency and money, so you'll keep only what your evaluation says is worth it.</p>
+<div class="chips"><span class="chip">Learn 20 min</span><span class="chip">Build ≈ 4 h</span><span class="chip">hybrid.py · rerank.py · query.py</span></div>
+<nav class="tabs"><a class="learn" href="#learn">Learn</a><a class="build" href="#build">Build · Lab 6</a><a href="#further">Go further</a></nav>
+
+<div class="part learn" id="learn"><span>LEARN</span><h2>Fuse, rerank, rewrite</h2></div>
+<h3>Hybrid search: merge rankings, not scores</h3>
+<p>Module 2 showed that BM25 and vectors fail on different questions, so run both. The catch is merging. A BM25 score of 7.8 and a cosine of 0.49 aren't on the same scale, and adding them is meaningless. <strong>Reciprocal rank fusion</strong> (RRF) ignores scores and uses positions only:</p>
+<div class="formula">rrf(d) = Σ over rankings that contain d of 1 / (c + rank(d))        with c = 60 by default</div>
+<p>A document near the top of either list gets a good score; one near the top of both gets the best. The constant <code>c</code> controls how much being first matters compared with merely being present.</p>
+<div class="widget wide" data-widget="rrf"><div class="widget-head"><span class="tag">TRY IT</span><h3>Reciprocal rank fusion</h3><p>Reorder either list</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+<p>Try moving the rollback runbook down the BM25 list: it stays near the top of the fused list because the vector list still ranks it first. Then set <code>c</code> to 0 and see how much more the first position is worth.</p>
+
+<h3>Reranking: a second, slower opinion</h3>
+<svg class="svgbox" viewBox="0 0 760 170" role="img" aria-label="Bi-encoder versus cross-encoder">
+<rect x="10" y="10" width="360" height="150" rx="12" fill="#fff" stroke="#e5e7ef"/><text x="30" y="36" font-size="13" font-weight="700" fill="#202331">Bi-encoder (Module 2): fast</text>
+<rect x="30" y="54" width="90" height="30" rx="6" fill="#eeecff"/><text x="75" y="74" font-size="12" text-anchor="middle" fill="#4f47b5">question</text>
+<rect x="30" y="104" width="90" height="30" rx="6" fill="#e8f3ee"/><text x="75" y="124" font-size="12" text-anchor="middle" fill="#2f786d">passage</text>
+<path d="M120 69h40M120 119h40" stroke="#9a9cab" stroke-width="1.5"/><rect x="160" y="54" width="70" height="30" rx="6" fill="#f1f2f7"/><text x="195" y="74" font-size="11" text-anchor="middle">model</text><rect x="160" y="104" width="70" height="30" rx="6" fill="#f1f2f7"/><text x="195" y="124" font-size="11" text-anchor="middle">model</text>
+<path d="M230 69h30M230 119h30" stroke="#9a9cab" stroke-width="1.5"/><text x="264" y="74" font-size="11">vector</text><text x="264" y="124" font-size="11">vector</text><text x="312" y="99" font-size="12" font-weight="700" fill="#6960d6">cosine</text>
+<text x="30" y="152" font-size="11" fill="#6e7181">Passages embedded once, ahead of time. Search millions.</text>
+<rect x="390" y="10" width="360" height="150" rx="12" fill="#fff" stroke="#e5e7ef"/><text x="410" y="36" font-size="13" font-weight="700" fill="#202331">Cross-encoder / LLM reranker: precise</text>
+<rect x="410" y="70" width="150" height="34" rx="6" fill="#eeecff"/><text x="485" y="92" font-size="12" text-anchor="middle" fill="#4f47b5">question + passage</text>
+<path d="M560 87h30" stroke="#9a9cab" stroke-width="1.5"/><rect x="590" y="70" width="70" height="34" rx="6" fill="#f1f2f7"/><text x="625" y="92" font-size="11" text-anchor="middle">model</text><path d="M660 87h22" stroke="#9a9cab" stroke-width="1.5"/><text x="688" y="92" font-size="12" font-weight="700" fill="#2f786d">score</text>
+<text x="410" y="152" font-size="11" fill="#6e7181">Reads both together, one pair at a time. Only for ~20 candidates.</text></svg>
+<p>A <strong>reranker</strong> reads the question and a passage together, so it can notice that "search requests use a 1200 ms deadline" doesn't answer a question about the catalog, even though the words overlap. That's far more precise than comparing two independent vectors, and far slower: one model call per (question, passage) pair. So it's always a second stage: retrieve ~20 candidates cheaply, rerank them, keep the top 5. Options: a small trained cross-encoder such as <code>ms-marco-MiniLM-L6-v2</code> (fast, local), a hosted rerank API, or an LLM asked to grade each passage (flexible, slowest).</p>
+<div class="key"><p><strong>Reranking can only reorder what retrieval found.</strong> If the right passage isn't among the candidates, no reranker can bring it back. Check evidence found at the candidate depth (say k = 20) before blaming the reranker.</p></div>
+
+<h3>Rewriting the question</h3>
+<p>Users don't write the way documentation does. Before searching, an LLM can:</p>
+<ul>
+<li><strong>Multi-query</strong>: rephrase the question 3 ways, search with each, and fuse the results with RRF. Cheap insurance against vocabulary mismatch.</li>
+<li><strong>HyDE</strong> (hypothetical document embeddings): write a fake answer and search with that, since a fake runbook paragraph looks more like the real runbook than a question does.</li>
+<li><strong>Condense a conversation</strong>: turn "and in staging?" into "What is the rollback approval rule in staging?" using the chat history. Any chat assistant needs this.</li>
+</ul>
+<p>Each adds an LLM call, so roughly 0.5–2 seconds, before retrieval even starts.</p>
+<div class="takeaways"><h3>Key takeaways</h3><ul>
+<li>Hybrid search covers both exact terms and paraphrases; fuse ranks with RRF because scores aren't comparable.</li>
+<li>Rerank a shortlist with a model that reads question and passage together; it can't recover missed passages.</li>
+<li>Query rewriting fixes vocabulary mismatch at the cost of an extra model call.</li>
+<li>Every stage costs latency: keep it only if your evaluation improves.</li>
+</ul></div>
+
+<div class="part build" id="build"><span>BUILD</span><h2>Lab 6: fusion, reranking and multi-query</h2></div>
+<div class="lab-goal"><p><strong>Goal:</strong> add hybrid, reranked and multi-query retrieval behind the same interface, and decide with <code>eval</code> which ones your system keeps.</p><p class="files">You write: <code>minirag/hybrid.py</code> → <code>rrf</code> · <code>minirag/rerank.py</code> → <code>rerank</code>, <code>parse_score</code> · <code>minirag/query.py</code> → <code>parse_queries</code>. Supplied: <code>HybridRetriever</code>, <code>RerankRetriever</code>, <code>MultiQueryRetriever</code> and the reranker adapters.</p></div>
+<ol class="steps">
+<li><h4>Reciprocal rank fusion</h4><p><code>rrf(rankings, c)</code>: add <code>1 / (c + rank)</code> for every id in every ranking (ranks start at 1; an id repeated within one ranking counts once), then sort by score and id. <code>HybridRetriever</code> calls it with the BM25 and dense rankings.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab6_retrieval -k Fusion</code></pre></li>
+<li><h4>Rerank</h4><p><code>rerank(query, hits, reranker, top_n)</code>: score all candidate texts in <em>one</em> <code>reranker.score</code> call, sort by the new score (keep the original order for ties), return the top <code>top_n</code> with their new scores. <code>parse_score</code> turns an LLM reply like "Score: 7/10" into 7.0.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab6_retrieval -k Rerank</code></pre></li>
+<li><h4>Multi-query</h4><p><code>parse_queries(text, original, n)</code>: clean the LLM's list of rewrites (strip numbering, bullets and quotes, drop blanks and duplicates) and return the original first, then up to <code>n</code> rewrites.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab6_retrieval</code></pre></li>
+<li><h4>Compare</h4><p>Use <code>k = 3</code> so differences show:</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m minirag eval --compare bm25,dense,hybrid,hybrid+rerank --k 3</code></pre>
+<pre class="out"><code>retriever               hit@k  recall    MRR   nDCG  evidence  tokens   leaks
+bm25                     0.96    0.94   0.90   0.90      0.82     202   0
+dense                    1.00    0.94   0.91   0.89      0.76     204   0
+hybrid                   1.00    0.98   0.94   0.94      0.86     216   0
+hybrid+rerank            0.96    0.92   0.87   0.87      0.82     228   0</code></pre>
+<p>Hybrid beats either retriever alone, even with the weak offline embedder. The default reranker, <code>overlap</code>, is a toy that counts shared words, and it makes things <em>worse</em>. A stage that sounds like an improvement can be a regression; this table is how you find out.</p></li>
+</ol>
+
+<h3>Experiments</h3>
+<ul class="try">
+<li><b>A real reranker</b><code>pip install sentence-transformers</code>, then <code>eval --compare hybrid,hybrid+rerank --k 3 --reranker cross-encoder --embedder ollama:nomic-embed-text</code> (or your Lab 2 embedder). Then try <code>--reranker llm --llm ollama:llama3.2:3b</code>.<div class="look">Look for: evidence and MRR against the extra time. <code>eval --answers</code> prints timings per question in the saved <code>--out</code> file.</div></li>
+<li><b>Multi-query on paraphrases</b><code>eval --compare bm25,bm25+multiquery --type paraphrase --llm ollama:llama3.2:3b</code><div class="look">Look for: whether rewrites help BM25 close the gap with vectors on paraphrase questions, and what they do to exact-code questions (<code>--type exact</code>).</div></li>
+<li><b>Fusion depth and c</b>Change <code>HybridRetriever(depth=20, c=60)</code> in <code>retrieval.py</code> to depth 5 and 50, and c to 1 and 200.<div class="look">Look for: small changes. RRF is robust to its settings, which is a big part of why it's the default.</div></li>
+<li><b>HyDE</b><code>query.py</code> has <code>hyde_query()</code>. Wire it into a retriever that searches with the hypothetical answer (copy <code>MultiQueryRetriever</code> as a template) and evaluate it with a real embedder.<div class="look">Look for: questions where the fake answer invents details that pull in the wrong documents.</div></li>
+</ul>
+<div class="done-box"><p><strong>Done when</strong> <code>python3 -m unittest -v tests.test_lab6_retrieval</code> passes and you've chosen a retriever for your system from an <code>eval</code> comparison.</p><button class="mark-done" type="button" data-lab="6">Mark this lab as done</button></div>
+
+<div class="part more" id="further"><span>GO FURTHER</span><h2>Optional</h2></div>
+<ul>
+<li>Add a <strong>router</strong>: if the question contains an error code or a config key, use BM25 only; otherwise hybrid. Measure it per question type.</li>
+<li>Implement conversation condensing: <code>ask</code> takes a chat history and rewrites the last question into a standalone one before retrieving.</li>
+<li>Reading: Cormack et al., <a href="https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf">Reciprocal Rank Fusion outperforms Condorcet and individual rank learning methods</a>; Gao et al., <a href="https://arxiv.org/abs/2212.10496">Precise Zero-Shot Dense Retrieval without Relevance Labels</a> (HyDE); the <a href="https://www.sbert.net/examples/sentence_transformer/applications/retrieve_rerank/README.html">Sentence Transformers retrieve &amp; re-rank guide</a>.</li>
+</ul>
+<div class="next"><a href="05-evaluation.html"><small>← Back</small>Module 5 · Evaluation</a><a href="07-ship-it.html"><small>Next →</small>Module 7 · Ship it</a></div>
+<p class="foot">AI ENGINEERING LAB / RAG · Learn it, build it, measure it.</p>
+</div>
+</main>
+<script src="../assets/course-data.js"></script>
+<script src="../assets/raglab.js"></script>
+<script src="../assets/app.js"></script>
+</body>
+</html>

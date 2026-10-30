@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 7 · Ship it · AI Engineering Lab</title>
+<meta name="description" content="Persistent incremental indexing, an HTTP API with validation and tracing, latency and cost: RAG as a service.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<button class="menu-btn" type="button" aria-label="Open the course menu">☰ Menu</button>
+<aside class="sidebar">
+<a class="brand" href="../index.html"><b>ai<i>_</i></b><span>ENGINEERING LAB<small>RAG COURSE</small></span></a>
+<nav class="nav" aria-label="Course">
+<a href="../../index.html"><span class="num">←</span>All courses</a>
+<a href="../index.html"><span class="num">◈</span>Course home</a>
+<a href="../setup.html"><span class="num">▸</span>Setup</a>
+<p class="nav-label">MODULES</p>
+<a href="../modules/01-keyword-search.html" data-lab="1"><span class="num">01</span>Keyword search<span class=tick>✓</span></a>
+<a href="../modules/02-embeddings.html" data-lab="2"><span class="num">02</span>Embeddings &amp; vectors<span class=tick>✓</span></a>
+<a href="../modules/03-chunking.html" data-lab="3"><span class="num">03</span>Chunking<span class=tick>✓</span></a>
+<a href="../modules/04-generation.html" data-lab="4"><span class="num">04</span>Grounded generation<span class=tick>✓</span></a>
+<a href="../modules/05-evaluation.html" data-lab="5"><span class="num">05</span>Evaluation<span class=tick>✓</span></a>
+<a href="../modules/06-better-retrieval.html" data-lab="6"><span class="num">06</span>Better retrieval<span class=tick>✓</span></a>
+<a href="../modules/07-ship-it.html" aria-current="page" data-lab="7"><span class="num">07</span>Ship it<span class=tick>✓</span></a>
+<a href="../capstone.html" data-lab="8"><span class="num">★</span>Capstone<span class=tick>✓</span></a>
+<p class="nav-label">MORE</p>
+<a href="../reference.html"><span class="num">≡</span>Reference</a>
+</nav>
+<div class="side-foot"><span data-count>0 / 8 labs done</span><div class="bar"><span></span></div>Progress is saved in this browser.</div>
+</aside>
+<main class="main" id="main">
+<div class="content">
+<p class="eyebrow"><span class="dot"></span>MODULE 07 · OPERATE</p>
+<h1>From script to service</h1>
+<p class="lede">A RAG system in production is two programs: an indexing job that keeps chunks and vectors in sync with the documents, and an API that answers questions safely, quickly and observably. You'll build both, put them in a container, and work out what a question costs.</p>
+<div class="chips"><span class="chip">Learn 20 min</span><span class="chip">Build ≈ 5 h</span><span class="chip">store.py · service.py · Dockerfile</span></div>
+<nav class="tabs"><a class="learn" href="#learn">Learn</a><a class="build" href="#build">Build · Lab 7</a><a href="#further">Go further</a></nav>
+
+<div class="part learn" id="learn"><span>LEARN</span><h2>Production RAG has two paths</h2></div>
+<svg class="svgbox" viewBox="0 0 820 250" role="img" aria-label="Production RAG architecture: indexing path and question path">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#9a9cab"/></marker></defs>
+<text x="16" y="24" font-size="11" font-weight="700" fill="#6e7181" letter-spacing="1.2">INDEXING JOB · on a schedule or on change</text>
+<rect x="16" y="36" width="130" height="50" rx="10" fill="#fff" stroke="#e5e7ef"/><text x="81" y="58" font-size="13" font-weight="600" text-anchor="middle">Sources</text><text x="81" y="75" font-size="10.5" text-anchor="middle" fill="#6e7181">wiki, repos, tickets</text>
+<rect x="196" y="36" width="170" height="50" rx="10" fill="#fff" stroke="#e5e7ef"/><text x="281" y="58" font-size="13" font-weight="600" text-anchor="middle">Load → chunk → embed</text><text x="281" y="75" font-size="10.5" text-anchor="middle" fill="#6e7181">only what changed (hashes)</text>
+<rect x="416" y="36" width="170" height="130" rx="10" fill="#eeecff" stroke="#c9c3ee"/><text x="501" y="88" font-size="13" font-weight="700" text-anchor="middle" fill="#4f47b5">Index store</text><text x="501" y="106" font-size="10.5" text-anchor="middle" fill="#4f47b5">chunks · vectors · metadata</text><text x="501" y="122" font-size="10.5" text-anchor="middle" fill="#6e7181">SQLite here; pgvector,</text><text x="501" y="136" font-size="10.5" text-anchor="middle" fill="#6e7181">OpenSearch… in production</text>
+<path d="M146 61h46M366 61h46" stroke="#9a9cab" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="16" y="146" font-size="11" font-weight="700" fill="#6e7181" letter-spacing="1.2">QUESTION PATH · every request</text>
+<rect x="16" y="158" width="130" height="56" rx="10" fill="#fff" stroke="#e5e7ef"/><text x="81" y="181" font-size="13" font-weight="600" text-anchor="middle">Client</text><text x="81" y="198" font-size="10.5" text-anchor="middle" fill="#6e7181">question + identity</text>
+<rect x="196" y="158" width="170" height="56" rx="10" fill="#e8f3ee" stroke="#bfe0d3"/><text x="281" y="181" font-size="13" font-weight="700" text-anchor="middle" fill="#245c54">RAG API</text><text x="281" y="198" font-size="10.5" text-anchor="middle" fill="#2f786d">validate · retrieve · generate</text>
+<rect x="636" y="158" width="170" height="56" rx="10" fill="#fff" stroke="#e5e7ef"/><text x="721" y="181" font-size="13" font-weight="600" text-anchor="middle">LLM provider</text><text x="721" y="198" font-size="10.5" text-anchor="middle" fill="#6e7181">Ollama · OpenAI · Anthropic…</text>
+<rect x="636" y="36" width="170" height="50" rx="10" fill="#fff" stroke="#e5e7ef"/><text x="721" y="58" font-size="13" font-weight="600" text-anchor="middle">Traces &amp; metrics</text><text x="721" y="75" font-size="10.5" text-anchor="middle" fill="#6e7181">timings, ids, outcomes</text>
+<path d="M146 186h46M366 186h46" stroke="#9a9cab" stroke-width="1.6" marker-end="url(#ar)"/><path d="M366 196C470 236 560 236 632 196" fill="none" stroke="#9a9cab" stroke-width="1.6" marker-end="url(#ar)"/><path d="M330 158C400 110 560 70 632 64" fill="none" stroke="#9a9cab" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#ar)"/>
+<text x="389" y="180" font-size="10" fill="#6e7181">read</text></svg>
+
+<h3>Keep the index in sync</h3>
+<p>Documents change every day. Re-embedding everything on every change is slow and, with a hosted embedding API, expensive. Instead, store a <strong>fingerprint</strong> (a hash of the document's text, metadata and your chunking and embedding settings) per document. On each run:</p>
+<ul>
+<li>new fingerprint for a known document → delete its old chunks, insert the new ones, embed only those;</li>
+<li>same fingerprint → skip it;</li>
+<li>document gone from the source → delete it and its chunks. Deletions are the step teams forget, and how a "deleted" policy keeps answering questions for months.</li>
+</ul>
+<p>Changing the chunk size or embedding model changes every fingerprint, so everything is rebuilt: exactly what should happen. Larger systems build a new index next to the old one and switch an alias when it's complete, so a half-built index never serves traffic.</p>
+
+<h3>An API contract you can operate</h3>
+<table>
+<tr><th>Concern</th><th>What the service does</th></tr>
+<tr><td>Input</td><td>Reject missing, blank or oversized questions with <code>400</code>. Bound <code>k</code>. Limits protect your budget as much as your server.</td></tr>
+<tr><td>Identity</td><td>Unknown or missing role → <code>401</code>. Here the role comes from a header for simplicity; a real deployment takes it from a verified token (OIDC/JWT), never from what the client claims.</td></tr>
+<tr><td>Dependencies</td><td>Model provider down → <code>502</code> with a request id. Anything else → <code>500</code> "internal error", with no stack trace or hostnames in the response.</td></tr>
+<tr><td>Traceability</td><td>Every response carries a <code>request_id</code>; every request, including failures, writes one trace line with that id.</td></tr>
+</table>
+
+<h3>Observe what matters</h3>
+<p>Log, per request: role, question <em>length</em> (not the text, which may be personal data), retrieved chunk ids, cited document ids, whether it abstained, and time per stage. With that you can answer the questions on-call actually asks: "why did it say that?", "is it slower since Tuesday?", "which documents never get cited?". Sample real questions, with the right permissions, to grow your evaluation set.</p>
+
+<h3>What a question costs</h3>
+<div class="widget" data-widget="cost"><div class="widget-head"><span class="tag">TRY IT</span><h3>Latency and cost calculator</h3><p>Edit any number</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+<p>Two things usually surprise people: retrieval is a rounding error next to generation time, and the retrieved chunks, repeated on every question, are a large share of the bill. Halving <code>k</code> or the chunk size is often the cheapest optimization you'll find, if your evaluation agrees.</p>
+<div class="takeaways"><h3>Key takeaways</h3><ul>
+<li>Separate indexing from serving; sync incrementally with fingerprints, and propagate deletions.</li>
+<li>Validate input, take identity from a trusted source, map failures to clear status codes, never leak internals.</li>
+<li>Trace every request with ids and per-stage timings, without logging sensitive text.</li>
+<li>Generation dominates latency; retrieved context drives cost.</li>
+</ul></div>
+
+<div class="part build" id="build"><span>BUILD</span><h2>Lab 7: a persistent index and an API</h2></div>
+<div class="lab-goal"><p><strong>Goal:</strong> run your RAG system as a service: an index that re-embeds only what changed, an HTTP API with validation, error mapping and traces, packaged in a Docker image.</p><p class="files">You write: <code>minirag/store.py</code> → <code>IndexStore.sync</code> · <code>minirag/service.py</code> → <code>RagService.handle_ask</code>. Supplied: the schema, the FastAPI and standard-library HTTP adapters, the <code>Dockerfile</code>.</p></div>
+<ol class="steps">
+<li><h4>Incremental sync</h4><p><code>IndexStore.sync(docs, strategy, size, overlap, embedder)</code>: compare each document's <code>fingerprint</code> with the stored one, classify it as added, updated or unchanged, find documents that disappeared, embed all new chunks in one call, and write everything in a single transaction.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab7_ship -k Store</code></pre>
+<details><summary>Hint</summary><p><code>dict(self.db.execute("SELECT doc_id, fingerprint FROM documents"))</code> gives you the stored state in one line. <code>with self.db:</code> commits on success and rolls back on an exception.</p></details></li>
+<li><h4>Watch it work</h4>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m minirag index --db .minirag/index.sqlite
+<span class="p">$ </span>python3 -m minirag index --db .minirag/index.sqlite</code></pre>
+<p>The first run adds 24 documents; the second finds all 24 unchanged. Now copy the data folder somewhere, edit one value in a document, delete another, and point <code>MINIRAG_DATA</code> at the copy:</p>
+<pre class="cmd"><code><span class="p">$ </span>cp -r ../../tracks/rag/data /tmp/lumen-data
+<span class="p">$ </span>sed -i.bak 's/800 ms total deadline/750 ms total deadline/' /tmp/lumen-data/docs/catalog-api-timeouts.md
+<span class="p">$ </span>rm /tmp/lumen-data/docs/vendor-cdn-note.md /tmp/lumen-data/docs/*.bak
+<span class="p">$ </span>MINIRAG_DATA=/tmp/lumen-data python3 -m minirag index --db .minirag/index.sqlite</code></pre>
+<pre class="out"><code>.minirag/index.sqlite: 108 chunks
+  added       0
+  updated     1  catalog-api-timeouts
+  unchanged  22  adaptive-bitrate-ladder catalog-api-timeouts-2023 cdn-operations …
+  deleted     1  vendor-cdn-note
+  embedded    0 chunk(s)</code></pre>
+<p>Add <code>--retriever hybrid</code> and the vectors are stored too: every document is "updated" once (the embedder is part of the fingerprint), then only edited ones are re-embedded.</p></li>
+<li><h4>The request handler</h4><p><code>RagService.handle_ask(payload, headers)</code> returns <code>(status, body)</code>. Validate in the order of the docstring, call <code>ask()</code>, map <code>ModelError</code> to 502 and any other exception to 500, and write exactly one trace per request. It's a plain function, so the tests call it directly; the web framework is only an adapter.</p>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m unittest -v tests.test_lab7_ship</code></pre></li>
+<li><h4>Serve it</h4>
+<pre class="cmd"><code><span class="p">$ </span>python3 -m minirag serve --db .minirag/index.sqlite --llm ollama:llama3.2:3b</code></pre>
+<p>Without FastAPI installed it falls back to a standard-library server. With <code>pip install fastapi uvicorn</code> you also get interactive API docs at <a href="http://127.0.0.1:8000/docs">http://127.0.0.1:8000/docs</a>. In another terminal:</p>
+<pre class="cmd"><code><span class="p">$ </span>curl -s localhost:8000/ask -H 'X-User-Role: engineer' -H 'Content-Type: application/json' \
+    -d '{"question": "What is the current production timeout for catalog API requests?"}'
+<span class="p">$ </span>curl -s localhost:8000/ask -d '{"question": "hi"}'
+<span class="p">$ </span>tail -2 .minirag/traces.jsonl</code></pre>
+<pre class="out"><code>{"error": "unknown or missing role", "request_id": "011088dff6db42e1"}</code></pre></li>
+<li><h4>Containerize</h4><p>Copy the Dockerfile's comment: build from the repository root so the course data is in the build context.</p>
+<pre class="cmd"><code><span class="p">$ </span>cd ../..
+<span class="p">$ </span>docker build -f projects/knowledge-assistant/Dockerfile -t minirag .
+<span class="p">$ </span>docker run --rm -p 8000:8000 -e MINIRAG_LLM=ollama:llama3.2:3b -e OLLAMA_HOST=http://host.docker.internal:11434 minirag</code></pre>
+<p>The image runs as a non-root user, has a health check, and takes its configuration from <code>MINIRAG_*</code> environment variables. On Linux, add <code>--add-host=host.docker.internal:host-gateway</code> to reach Ollama on the host.</p></li>
+</ol>
+
+<h3>Experiments</h3>
+<ul class="try">
+<li><b>Break the model</b>Stop Ollama (or set a wrong <code>OLLAMA_HOST</code>) while the server runs and send a question.<div class="look">Look for: a 502 with a request id, no hostnames in the body, and the error in the trace line. That's what lets on-call debug without exposing internals.</div></li>
+<li><b>Measure latency</b>Save this as <code>loadtest.py</code> and run it against your server with the extractive LLM and then a real one:
+<pre><code>import json, statistics, time, urllib.request
+from concurrent.futures import ThreadPoolExecutor
+
+QUESTIONS = [q["question"] for q in json.load(open("../../tracks/rag/data/questions.json"))]
+
+def ask(question):
+    start = time.perf_counter()
+    request = urllib.request.Request("http://127.0.0.1:8000/ask", data=json.dumps({"question": question}).encode(),
+                                     headers={"X-User-Role": "engineer", "Content-Type": "application/json"})
+    urllib.request.urlopen(request).read()
+    return (time.perf_counter() - start) * 1000
+
+with ThreadPoolExecutor(max_workers=4) as pool:
+    ms = sorted(pool.map(ask, QUESTIONS * 3))
+print(f"{len(ms)} requests · p50 {statistics.median(ms):.0f} ms · p95 {ms[int(len(ms) * 0.95)]:.0f} ms")</code></pre>
+<div class="look">Look for: the gap between p50 and p95, and how both change with concurrency (<code>max_workers</code>). Compare with the <code>timings</code> in your traces: which stage grows?</div></li>
+<li><b>Cost your own setup</b>Put your real numbers in the calculator above: your <code>k</code>, your average chunk tokens (the <code>tokens</code> column of <code>eval</code> divided by k), your provider's prices.<div class="look">Look for: the monthly cost at 10× your expected traffic, and which single setting would halve it.</div></li>
+</ul>
+<div class="done-box"><p><strong>Done when</strong> <code>python3 -m unittest -v tests.test_lab7_ship</code> passes and <code>curl</code> gets a cited answer from your running service.</p><button class="mark-done" type="button" data-lab="7">Mark this lab as done</button></div>
+
+<div class="part more" id="further"><span>GO FURTHER</span><h2>Optional</h2></div>
+<ul>
+<li><strong>pgvector.</strong> Run <code>pgvector/pgvector</code> in Docker, write an <code>IndexStore</code> with the same methods on Postgres, and do vector search in SQL (<code>ORDER BY embedding &lt;=&gt; $1 LIMIT k</code>). Add an HNSW index and compare with exact search.</li>
+<li><strong>Streaming.</strong> Add a <code>/ask/stream</code> endpoint that streams tokens as server-sent events, and measure time to first token instead of total time.</li>
+<li><strong>OpenTelemetry.</strong> Replace the JSON trace with spans per stage (retrieve, pack, generate) and look at them in Jaeger.</li>
+<li><strong>Deploy.</strong> Run the image on a managed container service (AWS App Runner or ECS, Google Cloud Run, Azure Container Apps) with a hosted model API, the index on a volume or in a managed Postgres, and the API key in the platform's secret store.</li>
+</ul>
+<div class="next"><a href="06-better-retrieval.html"><small>← Back</small>Module 6 · Better retrieval</a><a href="../capstone.html"><small>Next →</small>Capstone</a></div>
+<p class="foot">AI ENGINEERING LAB / RAG · Learn it, build it, measure it.</p>
+</div>
+</main>
+<script src="../assets/course-data.js"></script>
+<script src="../assets/raglab.js"></script>
+<script src="../assets/app.js"></script>
+</body>
+</html>

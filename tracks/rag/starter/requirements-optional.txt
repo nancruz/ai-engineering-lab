@@ -1,0 +1,5 @@
+# Nothing here is needed for the core labs: minirag runs on the Python standard library.
+# Install what you want to try:  pip install -r requirements-optional.txt
+sentence-transformers   # Lab 2 local embeddings, Lab 6 cross-encoder reranker
+fastapi                 # Lab 7 HTTP API with interactive docs at /docs
+uvicorn                 # Lab 7 ASGI server
