@@ -35,19 +35,74 @@
 <p class="eyebrow"><span class="dot"></span>MODULE 02 · RETRIEVE</p>
 <h1>Search by meaning, not spelling</h1>
 <p class="lede">Keyword search can't see that "undo a bad release" means "roll back". Embedding models can: they turn text into vectors whose direction captures meaning. You'll see what cosine similarity measures, then build vector search with a cache, and plug in a real embedding model.</p>
-<div class="chips"><span class="chip">Learn 20 min</span><span class="chip">Build ≈ 3 h</span><span class="chip">embeddings.py · vectors.py</span></div>
+<div class="chips"><span class="chip">Learn 45 min</span><span class="chip">Build ≈ 3 h</span><span class="chip">embeddings.py · vectors.py</span></div>
 <nav class="tabs"><a class="learn" href="#learn">Learn</a><a class="build" href="#build">Build · Lab 2</a><a href="#further">Go further</a></nav>
 
-<div class="part learn" id="learn"><span>LEARN</span><h2>Vectors, angles and nearest neighbours</h2></div>
-<h3>An embedding is a point in meaning-space</h3>
-<p>An <strong>embedding model</strong> maps a piece of text to a list of numbers, a vector: 384 numbers for <code>all-MiniLM-L6-v2</code>, 768 for <code>nomic-embed-text</code>. It's trained on millions of pairs of related texts (a question and its answer, a title and its article) to put related texts close together and unrelated ones far apart. Nobody chooses what each dimension means; what matters is which vectors end up close.</p>
-<p>"Close" means pointing in a similar direction. The usual measure is <strong>cosine similarity</strong>: the cosine of the angle between two vectors. It's 1 when they point the same way, 0 when they're unrelated (at 90°) and −1 when they're opposite. It ignores length, so a long passage and a short question can still match.</p>
-<div class="widget" data-widget="vectors"><div class="widget-head"><span class="tag">TRY IT</span><h3>Cosine similarity is about angle</h3><p>Two dimensions instead of 768</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
-<div class="key"><p><strong>Normalize once, then use dot products.</strong> If every vector is scaled to length 1, the dot product <em>is</em> the cosine. Vector databases rely on this: normalize at indexing time, then searching is just multiply-and-add.</p></div>
+<div class="part learn" id="learn"><span>LEARN</span><h2>From words to vectors, and how a vector database searches them</h2></div>
+<p>This page builds the idea up from nothing: what a vector is, how you'd turn a sentence into one, how two vectors are compared, and what a vector database actually does when you search it. Each step has something to play with. No maths beyond multiplying and adding.</p>
 
-<h3>Nearest neighbours: what vector search returns</h3>
-<p>To search, embed the question with the same model and return the chunks whose vectors are most similar. The map below is a hand-drawn 2-D cartoon of what an embedding model does. Real models work in hundreds of dimensions, and you'll use one in the lab. Notice that the nearest sentences often share <em>no words</em> with the question.</p>
+<h3>The problem: same meaning, different words</h3>
+<p>In Module 1, the question "how do I <em>undo</em> a bad <em>release</em>?" didn't find the rollback runbook, because the runbook says "<em>roll back</em>" and BM25 only matches identical terms. A person sees immediately that these mean the same thing. To get a computer to see it, we need a way to represent <em>what a text is about</em> that doesn't depend on its exact words. That representation is a vector.</p>
+
+<h3>Step 1 · A vector is just a list of numbers</h3>
+<p>A <strong>vector</strong> is an ordered list of numbers, like <code>[0.9, 0.2]</code>. With two numbers you can draw it: go 0.9 to the right and 0.2 up, and draw an arrow from the origin to that point. With three numbers it's an arrow in 3-D space. With 768 numbers you can't draw it anymore, but all the arithmetic works exactly the same way, which is the only reason any of this is practical.</p>
+<p>Each position in the list is a <strong>dimension</strong>. Two vectors can only be compared if they have the same number of dimensions <em>and</em> each position means the same thing in both.</p>
+
+<h3>Step 2 · A hand-made embedding</h3>
+<p>Suppose we describe every sentence with four scores between 0 and 1: how much it's about <em>releases &amp; rollback</em>, <em>video playback</em>, <em>billing &amp; rights</em>, and <em>time &amp; speed</em>. "Roll back production when the canary error ratio stays above 2%" might be <code>[0.9, 0.2, 0, 0.1]</code>: very much about rollback, a little about playback, nothing about billing. "How do I undo a bad release?" might be <code>[0.9, 0.3, 0, 0]</code>.</p>
+<p>Look at what just happened: the two sentences share no words, but their numbers are almost the same. That list of numbers is an <strong>embedding</strong>: a text, placed as a point in a space where each direction stands for some aspect of meaning. Search then becomes "find the stored vectors whose numbers look most like the question's numbers".</p>
+<div class="widget wide" data-widget="handembed"><div class="widget-head"><span class="tag">TRY IT</span><h3>Search with a 4-number embedding</h3><p>Hand-assigned numbers</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+
+<h3>Step 3 · Comparing two vectors: dot product, length, cosine</h3>
+<p>The widget used three small calculations. They are the core of every vector search, so here they are slowly.</p>
+<div class="grid2">
+<div class="card"><h4>Dot product</h4><p class="small">Multiply the two vectors position by position and add everything up. For <code>[0.9, 0.3, 0, 0]</code> and <code>[0.9, 0.2, 0, 0.1]</code>: 0.9×0.9 + 0.3×0.2 + 0×0 + 0×0.1 = <b>0.87</b>. A position contributes only when <em>both</em> vectors are high there, so the dot product is large when they're strong on the same topics.</p></div>
+<div class="card"><h4>Length (norm)</h4><p class="small">The length of the arrow: square each number, add, take the square root. <code>[0.9, 0.3, 0, 0]</code> has length √(0.81 + 0.09) = <b>0.95</b>. A vector with bigger numbers everywhere is longer, and it gets bigger dot products with <em>everything</em>, a bit like a long document in BM25.</p></div>
+<div class="card"><h4>Cosine similarity</h4><p class="small">The dot product divided by both lengths: 0.87 / (0.95 × 0.93) = <b>0.99</b>. Dividing cancels out the lengths, leaving only the <em>direction</em>. It's the cosine of the angle between the two arrows: 1 = same direction, 0 = at right angles (unrelated), −1 = opposite.</p></div>
+<div class="card"><h4>Why direction, not length?</h4><p class="small">With embeddings, length mostly reflects things like how long or wordy the text is, not what it's about. A one-line question and a long paragraph about the same topic should match. Comparing directions makes that happen.</p></div>
+</div>
+<p>Drag the arrows to get a feel for it. Notice that making an arrow longer changes the dot product but not the cosine.</p>
+<div class="widget" data-widget="vectors"><div class="widget-head"><span class="tag">TRY IT</span><h3>Cosine similarity is about angle</h3><p>Two dimensions instead of 768</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+<div class="key"><p><strong>Normalize once, then use dot products.</strong> If you divide every vector by its own length beforehand, every vector has length 1, and the dot product <em>is</em> the cosine (the division by 1 × 1 does nothing). That's why vector databases normalize at indexing time: searching becomes pure multiply-and-add, which hardware is very good at. Click "normalize both" above and compare the dot product with the cosine.</p></div>
+
+<h3>Step 4 · Real embedding models learn their own dimensions</h3>
+<p>Nobody hand-labels dimensions in practice. An <strong>embedding model</strong> is a neural network that reads a text and outputs a fixed-size vector: 384 numbers for <code>all-MiniLM-L6-v2</code>, 768 for <code>nomic-embed-text</code>, whether the input is three words or three paragraphs. A real output looks like <code>[0.031, −0.112, 0.087, 0.004, …]</code>, and no single number means anything you could name.</p>
+<p>How does it learn to put similar meanings close together? It's trained on millions of pairs of texts known to belong together: a question and its accepted answer, a title and its article, a search query and the page people clicked. Training repeatedly nudges the network so that each pair's vectors point in more similar directions and unrelated texts point in less similar ones. After enough of this, "undo a bad release" and "roll back production" end up close, because texts like them kept appearing together in the training data.</p>
+<p>Two consequences matter for you as an engineer:</p>
+<ul>
+<li>You can't inspect a dimension to debug a result. You can only look at which texts ended up close. Evaluation (Module 5) is how you find out whether the model's notion of "similar" matches yours.</li>
+<li>The model only knows what its training data covered. Your company's internal jargon or error codes may land in odd places.</li>
+</ul>
+<p>The map below is a cartoon of what a real model does: imagine the 768 dimensions squashed down to 2 so you can see them. Pick a question and look at which sentences are nearest, and how many words they share with it.</p>
 <div class="widget" data-widget="meaningmap"><div class="widget-head"><span class="tag">TRY IT</span><h3>A toy map of meaning</h3><p>Illustrative positions</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+
+<h3>Step 5 · Vector search, end to end</h3>
+<p>Now the full process. It happens in two phases: <strong>indexing</strong>, done once ahead of time (and again when documents change), and <strong>querying</strong>, done for every question. Click each stage.</p>
+<div class="widget wide" data-widget="lifecycle"><div class="widget-head"><span class="tag">STEP THROUGH</span><h3>What happens when you index and when you search</h3></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+
+<h3>Step 6 · What a vector database actually is</h3>
+<p>Strip away the marketing and a vector database (pgvector, OpenSearch, Qdrant, Pinecone, Chroma…) does three jobs:</p>
+<table>
+<tr><th>Job</th><th>What it means</th><th>In your lab</th></tr>
+<tr><td><strong>Store records</strong></td><td>Each record: an id, the vector, the original text, and metadata (document, section, access level, date…).</td><td>A Python list of chunks with their normalized vectors</td></tr>
+<tr><td><strong>Find nearest neighbours</strong></td><td>Given a query vector, return the k records with the highest similarity.</td><td><code>VectorIndex.search</code>: a loop computing every dot product (exact search)</td></tr>
+<tr><td><strong>Filter</strong></td><td>Only consider records matching conditions: this user's access level, current documents, a product area.</td><td>The <code>allow(item)</code> function, applied before scoring</td></tr>
+</table>
+<p>For the 112 Lumen chunks, a plain loop is the right answer: exact, simple, instant. The database earns its keep at scale, and the hard part there is the second job.</p>
+
+<h3>Step 7 · Approximate search: how vector databases go fast</h3>
+<p>Exact search compares the question with every stored vector. At 10 million vectors × 768 numbers that's about 7.7 billion multiplications for each question. Too slow. So vector databases build an <strong>approximate nearest neighbour (ANN)</strong> index, which finds <em>almost always</em> the nearest vectors while looking at only a small fraction of them.</p>
+<p>The most common one is <strong>HNSW</strong> (Hierarchical Navigable Small World). The core idea is easy to see in 2-D: at indexing time, link every vector to a few of its nearest neighbours, making a graph. To search, start at an entry point and keep hopping to whichever neighbour is closer to the question; stop when none is. Like finding a house by asking each neighbour "who lives closer to this address?".</p>
+<div class="widget" data-widget="ann"><div class="widget-head"><span class="tag">TRY IT</span><h3>Greedy search on a neighbour graph</h3><p>90 stored vectors in 2-D</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+<p>What to take from it:</p>
+<ul>
+<li><strong>It's fast</strong> because each hop only computes distances to a handful of neighbours, so most vectors are never looked at.</li>
+<li><strong>It can miss.</strong> The walk can get stuck at a point that's closer than all its neighbours but isn't the true nearest. Set the links to 1 or 2 and click around to find such places.</li>
+<li><strong>The knobs trade speed for accuracy.</strong> More links per point (called <code>M</code> in HNSW) and a wider search (<code>ef_search</code>, roughly "how many candidates to keep exploring") miss less but compute more distances. More links also means more memory.</li>
+<li><strong>The "hierarchical" part</strong> adds a few sparser layers on top, with long links, so the walk first crosses the space in big jumps and then refines in the dense bottom layer. Same greedy idea, fewer hops.</li>
+</ul>
+<p>The quality measure for an ANN index is <strong>recall against exact search</strong>: of the true top 10, how many did the index return? Production setups typically tune for 95–99%. Always check this on your own data before trusting the defaults.</p>
+<div class="note"><p><strong>Filters and ANN don't mix easily.</strong> If you search the graph first and filter afterwards ("post-filtering"), a restrictive filter (say, only SRE-visible chunks) can leave you with fewer than k results. Filtering first ("pre-filtering") is correct but breaks the graph's shortcuts. Databases handle this in different ways; it's worth knowing which yours uses. Your exact search doesn't have this problem: it filters, then scores everything that's left.</p></div>
 
 <h3>Keyword and vector search fail differently</h3>
 <table>
@@ -59,20 +114,29 @@
 </table>
 <p>Because they fail differently, production systems often run both and merge the results. That's Module 6.</p>
 
-<h3>Exact versus approximate search</h3>
-<p>Comparing the query with every vector (<strong>exact</strong>, or brute-force, search) is fine for thousands of chunks. At millions, vector databases (pgvector, OpenSearch, Qdrant, Pinecone…) use <strong>approximate nearest neighbour</strong> indexes such as HNSW, a graph you walk from neighbour to neighbour. It's much faster, but may miss some true neighbours, so measure ANN results against exact search on your own data before trusting them.</p>
-
 <h3>Practicalities that bite</h3>
 <ul>
-<li><strong>Same model for questions and documents.</strong> Vectors from different models aren't comparable, even if they have the same length.</li>
+<li><strong>Same model for questions and documents.</strong> Vectors from different models aren't comparable, even if they have the same length. Changing models means re-embedding everything.</li>
 <li><strong>Prefixes.</strong> Some models expect a task prefix; <code>nomic-embed-text</code> wants <code>search_query: </code> and <code>search_document: </code>. The supplied adapter adds them.</li>
 <li><strong>Cache embeddings.</strong> Embedding is the slow, sometimes paid, step. Key the cache by model name and text, so changing either re-embeds.</li>
 <li><strong>Memory.</strong> 1 million chunks × 768 dimensions × 4 bytes ≈ 3 GB of floats, before any index overhead.</li>
+<li><strong>Scores are relative.</strong> A cosine of 0.6 can be a great match with one model and a poor one with another. Don't hard-code a threshold without measuring.</li>
 </ul>
+
+<h3>How this maps to the lab</h3>
+<table>
+<tr><th>Concept</th><th>What you write</th></tr>
+<tr><td>Cosine similarity and normalization (Step 3)</td><td><code>cosine(a, b)</code> and <code>normalize(v)</code></td></tr>
+<tr><td>Exact nearest-neighbour search with a filter (Steps 5–6)</td><td><code>VectorIndex.search(query, k, allow)</code></td></tr>
+<tr><td>Not paying twice for the same embedding</td><td><code>CachedEmbedder.embed_documents</code></td></tr>
+</table>
+<p>The lab also gives you <code>HashingEmbedder</code>, a stand-in that needs no download. It turns each word and 3-letter fragment into a position in a 512-number vector. It's a real vector pipeline end to end, but it matches <em>spelling</em>, not meaning: "release" and "releases" come out close, "undo" and "roll back" don't. That makes the difference obvious when you swap in a real model at the end.</p>
+
 <div class="takeaways"><h3>Key takeaways</h3><ul>
-<li>Embeddings place text so that similar meaning means similar direction; cosine similarity measures that direction.</li>
+<li>An embedding is a list of numbers placing a text in a space where similar meaning means similar direction. Models learn this from millions of related text pairs.</li>
+<li>Cosine similarity = dot product ÷ both lengths = how aligned two vectors are. Normalize once and the dot product is enough.</li>
+<li>A vector database stores vectors with their text and metadata, finds nearest neighbours, and filters. At scale it uses an approximate index like HNSW, trading a little recall for a lot of speed.</li>
 <li>Vector search finds paraphrases that keyword search misses, and misses exact codes that keyword search finds.</li>
-<li>Normalize, cache by model + text, and use the same model on both sides.</li>
 </ul></div>
 
 <div class="part build" id="build"><span>BUILD</span><h2>Lab 2: vector search with a cache</h2></div>

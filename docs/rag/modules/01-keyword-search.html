@@ -35,7 +35,7 @@
 <p class="eyebrow"><span class="dot"></span>MODULE 01 · RETRIEVE</p>
 <h1>Find documents by their words</h1>
 <p class="lede">Before any AI: the ranking function behind Elasticsearch, OpenSearch and Lucene, which still does the first pass in many production RAG systems. You'll see why exact words matter, how BM25 scores them, and where word matching breaks.</p>
-<div class="chips"><span class="chip">Learn 20 min</span><span class="chip">Build ≈ 3 h</span><span class="chip">text.py · lexical.py</span></div>
+<div class="chips"><span class="chip">Learn 35 min</span><span class="chip">Build ≈ 3 h</span><span class="chip">text.py · lexical.py</span></div>
 <nav class="tabs"><a class="learn" href="#learn">Learn</a><a class="build" href="#build">Build · Lab 1</a><a href="#further">Go further</a></nav>
 
 <div class="part learn" id="learn"><span>LEARN</span><h2>How keyword search ranks documents</h2></div>
@@ -47,21 +47,60 @@
 <div class="widget" data-widget="invindex"><div class="widget-head"><span class="tag">TRY IT</span><h3>Look a query up in an inverted index</h3></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
 <p>The "terms" come from a <strong>tokenizer</strong>: lowercase the text, split it into words, drop words like "the" and "how" that appear everywhere. Small choices here matter. Should <code>PLAY-4012</code> be one term or two? You'll decide in the lab.</p>
 
-<h3>Scoring with BM25: three ideas</h3>
-<p>Once you have candidates, you need an order. <strong>BM25</strong> adds up a score for every query term a document contains, built from three intuitions:</p>
-<div class="grid2">
-<div class="card"><h4>1. Rare terms matter more</h4><p class="small">"playback" is in many Lumen documents, so it says little. "PLAY-4012" is in two. <strong>IDF</strong> (inverse document frequency) gives each term a weight that grows as fewer documents contain it.</p></div>
-<div class="card"><h4>2. Repeats help, with diminishing returns</h4><p class="small">A document mentioning "timeout" five times is probably more about timeouts than one mentioning it once, but not five times more. <strong>k1</strong> controls how fast extra occurrences stop counting.</p></div>
-<div class="card"><h4>3. Long documents shouldn't win by being long</h4><p class="small">A long handbook contains more words, so it matches more queries by chance. <strong>b</strong> controls how much a document's length (compared with the average) dampens its score.</p></div>
-<div class="card"><h4>Put together</h4><p class="small">score = Σ over query terms of idf(term) × saturated, length-normalized term frequency. No training, no model: just counting, and it's still hard to beat on exact terms.</p></div>
-</div>
-<details><summary>The formula</summary>
+<h3>Scoring with BM25, one idea at a time</h3>
+<p>Once you have candidate documents, you need to put them in order. <strong>BM25</strong> ("Best Match 25", the 25th formula its authors tried) gives each document a score, and it does it one query term at a time. For every query term the document contains it asks two questions, multiplies the answers, and adds the results up:</p>
+<div class="formula">score(document) = Σ over query terms of <b>[ how valuable is this term? ]</b> × <b>[ how much does this document use it, measured fairly? ]</b></div>
+<p>The first factor is called <strong>IDF</strong>. The second is a <strong>term-frequency</strong> part controlled by two knobs, <strong>k1</strong> and <strong>b</strong>. We'll take them one at a time, with the Lumen documents as the example throughout.</p>
+
+<h4>Idea 1 · IDF: rare words are better clues</h4>
+<p>Imagine you're looking for the document about error <code>PLAY-4012</code>, and someone hands you two clues: "it contains the word <em>playback</em>" and "it contains <em>play-4012</em>". The first clue is almost useless: 11 of the 24 Lumen documents contain "playback". The second is excellent: only 2 do.</p>
+<p>That's the whole idea of <strong>inverse document frequency</strong>. Count how many documents contain the term; that count is its <strong>document frequency</strong>, <code>df</code>. The fewer documents contain it, the more a match is worth. "Inverse" just means the weight goes <em>down</em> as df goes <em>up</em>.</p>
+<div class="widget" data-widget="idf"><div class="widget-head"><span class="tag">TRY IT</span><h3>How rare is the word, and what is it worth?</h3><p>N = 24 Lumen documents</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+<p>Three things to notice on the curve:</p>
+<ul>
+<li>It drops fast at first. Going from 1 to 4 documents loses more weight than going from 12 to 20. Being <em>rare</em> matters; the difference between "common" and "very common" matters less.</li>
+<li>A word in every document gets a weight near zero. It still counts a tiny bit, never negative: that's why there's a <code>1 +</code> inside the logarithm (the Lucene variant).</li>
+<li>The logarithm (<code>ln</code>) squashes the range. Without it, a term in 1 document would be worth 16.7 and a term in 2 documents 10; with it, 2.81 and 2.30. Rare terms still lead, but a single very rare word can't drown out every other term in the query.</li>
+</ul>
+<p>IDF is a property of the term across the whole collection. It's the same for every document; it says nothing yet about any particular document.</p>
+
+<h4>Idea 2 · Term frequency and k1: repeats help, but less and less</h4>
+<p>Now look at one document. <strong>Term frequency</strong>, <code>tf</code>, is how many times the term appears in it. A document that mentions "timeout" five times is probably more <em>about</em> timeouts than one that mentions it once. But is it five times more about timeouts? Probably not: after a few mentions, more mentions tell you little.</p>
+<p>So BM25 doesn't use the raw count. It passes it through a curve that rises quickly and then flattens out, a <em>saturation</em> curve:</p>
+<div class="formula">tf part = tf × (k1 + 1) / (tf + k1)</div>
+<p>One occurrence always gives exactly 1. Every extra occurrence adds less than the one before, and the total can never exceed <code>k1 + 1</code>. So <strong>k1 is the knob for how quickly repetition stops paying off</strong>:</p>
+<ul>
+<li><strong>k1 = 0</strong>: the term is either present (1) or absent (0). Counting is switched off.</li>
+<li><strong>k1 around 1.2–2</strong> (the usual defaults; this course uses 1.5): the 2nd and 3rd mention still help, the 10th barely does.</li>
+<li><strong>large k1</strong>: close to the raw count, so a document can win by repeating a word many times.</li>
+</ul>
+<div class="widget" data-widget="tfsat"><div class="widget-head"><span class="tag">TRY IT</span><h3>Diminishing returns: what k1 does</h3><p>Average-length document</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+
+<h4>Idea 3 · Length normalization and b: don't reward documents for being long</h4>
+<p>The Lumen documents range from 37 to 265 terms; the average (<code>avgdl</code>) is about 144. A long document mentions more things, so it will contain a query word several times just by being long, without being more <em>about</em> it. If you only counted, the long handbooks would win every search.</p>
+<p>BM25 corrects for this by comparing each document's length <code>|d|</code> with the average and turning that into a <strong>length factor</strong>:</p>
+<div class="formula">length factor = 1 − b + b × |d| / avgdl</div>
+<p>For a document of exactly average length, the factor is 1 and nothing changes. Twice the average with b = 0.75 gives 1 − 0.75 + 0.75 × 2 = 1.75. Half the average gives 0.625. The factor then multiplies k1 in the saturation curve:</p>
+<div class="formula">tf part = tf × (k1 + 1) / (tf + k1 × length factor)</div>
+<p>A bigger factor makes the curve fill up more slowly, so each occurrence in a long document is worth less; a smaller one makes each occurrence in a short document worth more. <strong>b is the knob for how much length matters</strong>, from 0 to 1:</p>
+<ul>
+<li><strong>b = 0</strong>: the factor is always 1. Length is ignored.</li>
+<li><strong>b = 1</strong>: the factor is the full ratio. A document twice as long needs about twice the mentions to score the same.</li>
+<li><strong>b = 0.75</strong> (the common default): mostly corrected, a bit of benefit of the doubt for long documents.</li>
+</ul>
+
+<h4>Putting it together, step by step</h4>
+<p>Here is one term's contribution computed in the same order your code will compute it. Start with the presets: they are the real numbers behind the query <code>PLAY-4012</code> (which the tokenizer turns into the terms <code>play-4012</code>, <code>play</code> and <code>4012</code>).</p>
+<div class="widget" data-widget="termcalc"><div class="widget-head"><span class="tag">TRY IT</span><h3>One term's BM25 score, step by step</h3><p>avgdl = 144 terms</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
+<div class="key"><p><strong>Read the two "play" presets side by side.</strong> <code>playback-error-codes</code> says "play" 10 times, <code>drm-license-service</code> only 4. Yet the first scores only 3.64 against 3.14: saturation (k1) means the extra six mentions add little, and the document is 1.24× the average length (b), so each mention counts slightly less. Add the other two terms and the DRM page wins overall, 7.80 to 7.79. You'll see exactly these numbers in the explorer below and from your own code in the lab.</p></div>
+<details><summary>The full formula, for reference</summary>
 <div class="formula">score(d, q) = Σ<sub>t ∈ q</sub> idf(t) · tf(t,d) · (k1 + 1) / ( tf(t,d) + k1 · (1 − b + b · |d| / avgdl) )<br>idf(t) = ln( 1 + (N − df(t) + 0.5) / (df(t) + 0.5) )</div>
-<p class="small">tf(t,d): occurrences of t in d · df(t): documents containing t · N: number of documents · |d|: terms in d · avgdl: average |d|. Common defaults: k1 between 1.2 and 2.0, b = 0.75. This is the "+1 inside the log" variant used by Lucene, which keeps IDF positive.</p>
+<p class="small">tf(t,d): occurrences of t in d · df(t): documents containing t · N: number of documents · |d|: terms in d · avgdl: average |d|. The +0.5s keep the division safe when df is 0 or N. No training and no model: just counting, and it's still hard to beat on exact terms.</p>
 </details>
 
 <div class="widget wide" data-widget="bm25"><div class="widget-head"><span class="tag">TRY IT</span><h3>BM25 explorer on the Lumen knowledge base</h3><p>Bars show each term's contribution</p></div><div class="widget-body"><p class="empty">This interactive needs JavaScript.</p></div></div>
-<p>Things to try in the explorer:</p>
+<h4>The whole ranking</h4>
+<p>Now all the pieces at once, on all 24 documents. Each bar is one document's score, split into the contribution of each query term. Things to try:</p>
 <ul>
 <li><strong>PLAY-4012</strong>: the DRM overview slightly outscores the error-code table. Both mention the code; the DRM page is shorter. Drag <strong>b</strong> to 0 and the table wins. Length normalization helped here, and hurt there.</li>
 <li><strong>k1 = 0</strong> makes every term count once, however often it appears. Watch the saturation curve flatten.</li>
