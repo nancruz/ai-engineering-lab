@@ -120,6 +120,100 @@
     render();
   };
 
+  // Module 1: IDF — how rare a term is decides how much it is worth
+  widgets.idf = (body) => {
+    const ix = index("document"), N = ix.items.length;
+    const idfOf = (df) => Math.log(1 + (N - df + 0.5) / (df + 0.5));
+    const real = ["play-4012", "drm", "play", "rollback", "catalog", "release", "error", "playback"].map((t) => ({ t, df: ix.df.get(t) || 0 })).filter((r) => r.df);
+    body.innerHTML = `<div class="controls"><label class="control"><span>The term appears in <output data-o>2</output> of ${N} documents (df)</span><input type="range" data-df min="1" max="${N}" value="2" style="width:260px"></label></div>
+      <div data-docs style="display:flex;flex-wrap:wrap;gap:4px;margin:0 0 12px"></div><div data-calc class="formula" style="white-space:normal;margin-bottom:12px"></div><svg class="svgbox" data-svg viewBox="0 0 560 190" role="img" aria-label="IDF curve"></svg>
+      <p class="small muted">Dots are real terms from the Lumen knowledge base. Click one to load it.</p>`;
+    const slider = $("[data-df]", body);
+    slider.addEventListener("input", render);
+    body.addEventListener("click", (e) => { const g = e.target.closest("[data-term]"); if (g) { slider.value = g.dataset.df; render(); } });
+    function render() {
+      const df = +slider.value, idf = idfOf(df), names = real.filter((r) => r.df === df).map((r) => r.t);
+      $("[data-o]", body).textContent = df;
+      $("[data-docs]", body).innerHTML = Array.from({ length: N }, (_, i) => `<span title="document ${i + 1}" style="width:18px;height:22px;border-radius:3px;background:${i < df ? "#6960d6" : "#ecebf6"}"></span>`).join("");
+      $("[data-calc]", body).innerHTML = `idf = ln( 1 + (N − df + 0.5) / (df + 0.5) ) = ln( 1 + (${N} − ${df} + 0.5) / (${df} + 0.5) ) = ln( ${(1 + (N - df + 0.5) / (df + 0.5)).toFixed(2)} ) = <b>${idf.toFixed(2)}</b>` +
+        `<br><span class="small muted">${names.length ? `Lumen terms with df = ${df}: <b class="mono">${names.join(", ")}</b>. ` : ""}${df <= 2 ? "Very rare: finding this word in a document is strong evidence the document is the one you want." : df >= N - 2 ? "In almost every document: it can't tell documents apart, so it's worth almost nothing." : df > N / 3 ? "Common: it narrows things down only a little." : "Fairly rare: a useful clue."}</span>`;
+      const W = 560, H = 190, P = 34, ymax = idfOf(1) * 1.08, x = (d) => P + ((W - P - 14) * (d - 1)) / (N - 1), y = (v) => H - 26 - ((H - 44) * v) / ymax;
+      const pts = Array.from({ length: N }, (_, i) => `${x(i + 1)},${y(idfOf(i + 1))}`).join(" ");
+      $("[data-svg]", body).innerHTML = `<line x1="${P}" y1="${H - 26}" x2="${W - 10}" y2="${H - 26}" stroke="#ccd"/><line x1="${P}" y1="12" x2="${P}" y2="${H - 26}" stroke="#ccd"/>
+        <polyline points="${pts}" fill="none" stroke="#c9c4f3" stroke-width="2.5"/>
+        ${real.map((r, i) => `<g data-term="${r.t}" data-df="${r.df}" style="cursor:pointer"><circle cx="${x(r.df)}" cy="${y(idfOf(r.df))}" r="5" fill="#2f8f83"/><text x="${x(r.df) + (i % 2 ? -7 : 6)}" y="${y(idfOf(r.df)) + (i % 2 ? 15 : -8)}" text-anchor="${i % 2 ? "end" : "start"}" font-size="10" fill="#2f786d">${r.t}</text></g>`).join("")}
+        <circle cx="${x(df)}" cy="${y(idf)}" r="7" fill="none" stroke="#6960d6" stroke-width="2.5"/><line x1="${x(df)}" y1="${y(idf)}" x2="${x(df)}" y2="${H - 26}" stroke="#6960d6" stroke-dasharray="3 3"/>
+        ${[1, 6, 12, 18, N].map((d) => `<text x="${x(d)}" y="${H - 10}" font-size="10" text-anchor="middle" fill="#888">${d}</text>`).join("")}
+        <text x="${P + 4}" y="22" font-size="10" fill="#888">idf (weight of the term)</text><text x="${W - 12}" y="${H - 30}" font-size="10" text-anchor="end" fill="#888">documents containing the term (df)</text></svg>`;
+    }
+    render();
+  };
+
+  // Module 1: term-frequency saturation — what k1 does
+  widgets.tfsat = (body) => {
+    body.innerHTML = `<div class="controls"><label class="control"><span>k1 <output data-o>1.5</output></span><input type="range" data-k1 min="0" max="5" step="0.1" value="1.5"></label></div>`;
+    presets(body, "Try:", [{ label: "k1 = 0", k1: 0 }, { label: "k1 = 0.5", k1: 0.5 }, { label: "k1 = 1.5 (our default)", k1: 1.5 }, { label: "k1 = 5", k1: 5 }], (p) => { $("[data-k1]", body).value = p.k1; render(); });
+    const grid = document.createElement("div"); grid.className = "grid2"; grid.style.alignItems = "start"; grid.innerHTML = `<svg class="svgbox" data-svg viewBox="0 0 380 220" role="img" aria-label="Saturation curves"></svg><div data-tab></div>`; body.appendChild(grid);
+    const note = document.createElement("p"); note.className = "small muted"; body.appendChild(note);
+    $("[data-k1]", body).addEventListener("input", render);
+    const sat = (f, k1) => (k1 === 0 ? (f > 0 ? 1 : 0) : (f * (k1 + 1)) / (f + k1));
+    function render() {
+      const k1 = +$("[data-k1]", body).value, maxTf = 12, W = 380, H = 220, P = 30, ymax = 6.2;
+      $("[data-o]", body).textContent = k1.toFixed(1);
+      const x = (f) => P + ((W - P - 10) * f) / maxTf, y = (v) => H - 24 - ((H - 40) * Math.min(v, ymax)) / ymax;
+      const curve = (k, color, w, dash = "") => `<polyline points="${Array.from({ length: maxTf + 1 }, (_, f) => `${x(f)},${y(sat(f, k))}`).join(" ")}" fill="none" stroke="${color}" stroke-width="${w}" ${dash ? `stroke-dasharray="${dash}"` : ""}/>`;
+      $("[data-svg]", body).innerHTML = `<line x1="${P}" y1="${H - 24}" x2="${W - 10}" y2="${H - 24}" stroke="#ccd"/><line x1="${P}" y1="10" x2="${P}" y2="${H - 24}" stroke="#ccd"/>
+        <polyline points="${x(0)},${y(0)} ${x(ymax)},${y(ymax)}" stroke="#d08a1f" stroke-width="1.5" stroke-dasharray="5 4" fill="none"/><text x="${x(3.6) - 6}" y="${y(4.4)}" font-size="10" fill="#a86b12" text-anchor="end">raw count →</text>
+        ${curve(k1, "#6960d6", 3)}<line x1="${P}" y1="${y(k1 + 1)}" x2="${W - 10}" y2="${y(k1 + 1)}" stroke="#6960d6" stroke-dasharray="3 4" opacity=".55"/>
+        <text x="${W - 12}" y="${y(k1 + 1) - 5}" text-anchor="end" font-size="10" fill="#6960d6">${k1 === 0 ? "k1 = 0: present or not, that's all" : `ceiling = k1 + 1 = ${(k1 + 1).toFixed(1)}`}</text>
+        ${Array.from({ length: maxTf }, (_, i) => i + 1).map((f) => `<circle cx="${x(f)}" cy="${y(sat(f, k1))}" r="3" fill="#6960d6"/>`).join("")}
+        ${[0, 3, 6, 9, 12].map((f) => `<text x="${x(f)}" y="${H - 8}" font-size="10" text-anchor="middle" fill="#888">${f}</text>`).join("")}<text x="${P + 4}" y="20" font-size="10" fill="#888">tf part of the score</text><text x="${W - 12}" y="${H - 28}" font-size="10" text-anchor="end" fill="#888">times the term appears (tf)</text></svg>`;
+      const rows = [1, 2, 3, 4, 5, 10, 20].map((f, i, a) => { const v = sat(f, k1), prev = i ? sat(a[i - 1], k1) : 0; return `<tr><td class="mono">${f}</td><td class="mono">${v.toFixed(2)}</td><td class="mono muted">${i ? "+" + (v - prev).toFixed(2) + (a[i] - a[i - 1] > 1 ? ` <span class="small">(${a[i] - a[i - 1]} more)</span>` : "") : "–"}</td></tr>`; }).join("");
+      $("[data-tab]", body).innerHTML = `<table><tr><th>tf</th><th>tf part</th><th>added by the extra occurrences</th></tr>${rows}</table>`;
+      note.innerHTML = k1 === 0 ? "With k1 = 0 the first occurrence is all that counts. Mentioning a word ten times is no better than once." :
+        k1 >= 4 ? `With a large k1 the curve stays close to the raw count for a long time: repetition keeps paying off, so a document can win just by repeating a word.` :
+        `The first occurrence gives 1.00. The second adds ${(sat(2, k1) - 1).toFixed(2)}, the third ${(sat(3, k1) - sat(2, k1)).toFixed(2)}… and no amount of repetition gets past ${(k1 + 1).toFixed(1)}. That's “diminishing returns”.`;
+    }
+    render();
+  };
+
+  // Module 1: one BM25 term, computed step by step
+  widgets.termcalc = (body) => {
+    const ix = index("document"), N = ix.items.length, avgdl = ix.avgdl;
+    body.innerHTML = `<div class="controls">
+      <label class="control"><span>df (docs with the term) <output data-o="df"></output></span><input type="range" data-v="df" min="1" max="${N}" value="4"></label>
+      <label class="control"><span>tf (times in this doc) <output data-o="tf"></output></span><input type="range" data-v="tf" min="1" max="20" value="4"></label>
+      <label class="control"><span>doc length |d| <output data-o="len"></output> terms</span><input type="range" data-v="len" min="20" max="400" step="1" value="140"></label>
+      <label class="control"><span>k1 <output data-o="k1"></output></span><input type="range" data-v="k1" min="0" max="3" step="0.1" value="1.5"></label>
+      <label class="control"><span>b <output data-o="b"></output></span><input type="range" data-v="b" min="0" max="1" step="0.05" value="0.75"></label></div>`;
+    const set = (v) => { Object.entries(v).forEach(([k, val]) => { $(`[data-v="${k}"]`, body).value = val; }); render(); };
+    const p = (id, t) => { const pos = ix.items.findIndex((i) => i.id === id); return { df: ix.df.get(t), tf: ix.tf[pos].get(t), len: ix.lengths[pos], k1: 1.5, b: 0.75 }; };
+    presets(body, "Real cases:", [{ label: "“play” in drm-license-service", v: p("drm-license-service", "play") }, { label: "“play” in playback-error-codes", v: p("playback-error-codes", "play") }, { label: "“play-4012” in playback-error-codes", v: p("playback-error-codes", "play-4012") }], (x) => set(x.v));
+    const out = document.createElement("div"); body.appendChild(out);
+    $$("input", body).forEach((n) => n.addEventListener("input", render));
+    function calc(df, tf, len, k1, b) {
+      const idf = Math.log(1 + (N - df + 0.5) / (df + 0.5)), ratio = len / avgdl, factor = 1 - b + b * ratio, part = (tf * (k1 + 1)) / (tf + k1 * factor);
+      return { idf, ratio, factor, part, score: idf * part };
+    }
+    function render() {
+      const v = Object.fromEntries($$("[data-v]", body).map((n) => [n.dataset.v, +n.value]));
+      Object.entries(v).forEach(([k, val]) => { $(`[data-o="${k}"]`, body).textContent = k === "k1" ? val.toFixed(1) : k === "b" ? val.toFixed(2) : val; });
+      const c = calc(v.df, v.tf, v.len, v.k1, v.b);
+      const lenWord = c.factor > 1.02 ? "longer than average, so each occurrence counts a bit <b>less</b>" : c.factor < 0.98 ? "shorter than average, so each occurrence counts a bit <b>more</b>" : "about average: no adjustment";
+      const step = (n, label, math, why) => `<div class="result" style="padding:8px 12px"><div class="result-top"><span class="rank">${n}</span><b style="font-size:13.5px">${label}</b></div><div class="mono small" style="margin:4px 0 2px 30px">${math}</div><div class="snippet" style="margin-bottom:0">${why}</div></div>`;
+      const sizes = [["short (½ avg)", avgdl / 2], ["average", avgdl], ["long (2× avg)", avgdl * 2]].map(([n, l]) => [n, calc(v.df, v.tf, l, v.k1, v.b).score]), smax = Math.max(...sizes.map((s) => s[1]), 0.01);
+      out.innerHTML = `<div class="results">
+        ${step(1, "How rare is the term?", `idf = ln(1 + (${N} − ${v.df} + 0.5) / (${v.df} + 0.5)) = <b>${c.idf.toFixed(2)}</b>`, `It's in ${v.df} of ${N} documents.`)}
+        ${step(2, "How long is this document, compared with the average?", `|d| / avgdl = ${v.len} / ${avgdl.toFixed(0)} = <b>${c.ratio.toFixed(2)}</b>`, "avgdl is the average length of the Lumen documents, in terms.")}
+        ${step(3, "Turn that into a length factor (this is where b acts)", `1 − b + b × ${c.ratio.toFixed(2)} = 1 − ${v.b.toFixed(2)} + ${v.b.toFixed(2)} × ${c.ratio.toFixed(2)} = <b>${c.factor.toFixed(2)}</b>`, `b = 0 would make this always 1 (length ignored); b = 1 uses the full ratio. Here: ${lenWord}.`)}
+        ${step(4, "Saturate the count (this is where k1 acts)", `tf × (k1 + 1) / (tf + k1 × factor) = ${v.tf} × ${(v.k1 + 1).toFixed(1)} / (${v.tf} + ${v.k1.toFixed(1)} × ${c.factor.toFixed(2)}) = <b>${c.part.toFixed(2)}</b>`, `The length factor multiplies k1: a long document behaves as if k1 were bigger, so its occurrences fill up more slowly.`)}
+        ${step(5, "Multiply", `score = idf × tf part = ${c.idf.toFixed(2)} × ${c.part.toFixed(2)} = <b>${c.score.toFixed(2)}</b>`, "Do this for every query term the document contains, then add the results up. That sum is the document's BM25 score.")}</div>
+        <p class="small muted" style="margin:14px 0 6px">The same term, appearing ${v.tf}×, in three documents of different lengths (b = ${v.b.toFixed(2)}):</p>
+        ${sizes.map(([n, s]) => `<div style="display:flex;align-items:center;gap:10px;margin:4px 0"><span class="small" style="width:110px">${n}</span><span style="height:14px;border-radius:4px;background:#6960d6;width:${(70 * s) / smax}%"></span><span class="mono small">${s.toFixed(2)}</span></div>`).join("")}`;
+    }
+    render();
+  };
+
   // Module 2: vector angle playground
   widgets.vectors = (body) => {
     body.innerHTML = `<div class="grid2" style="align-items:center"><svg class="svgbox" viewBox="-1.6 -1.6 3.2 3.2" style="max-width:360px;touch-action:none;background:#fbfbfe;border:1px solid var(--line);border-radius:12px" data-svg></svg><div><div class="metric-grid" data-m style="grid-template-columns:1fr 1fr"></div><div class="presets" data-p></div><p class="small muted">Drag the two arrow heads. Cosine only cares about the angle between them; the dot product also grows with their lengths. Embedding models are trained so that texts with similar meaning point in similar directions.</p></div></div>`;
@@ -167,6 +261,114 @@
       $("[data-svg]", body).innerHTML = `<circle r="1.12" fill="#fbfbfe" stroke="#ecebf6" stroke-width="0.01"/>` + sents.map((s, i) => `${near.has(i) ? `<line x1="${q[0]}" y1="${-q[1]}" x2="${s.v[0]}" y2="${-s.v[1]}" stroke="#6960d6" stroke-width="0.012" stroke-dasharray="0.03 0.02"/>` : ""}<circle cx="${s.v[0]}" cy="${-s.v[1]}" r="${near.has(i) ? 0.055 : 0.04}" fill="${near.has(i) ? "#6960d6" : "#c5c2df"}"><title>${esc(s.text)}</title></circle>`).join("") +
         `<rect x="${q[0] - 0.06}" y="${-q[1] - 0.06}" width="0.12" height="0.12" fill="#2f8f83" transform="rotate(45 ${q[0]} ${-q[1]})"/><text x="0" y="1.22" font-size="0.075" text-anchor="middle" fill="#999">toy 2-D picture · hover the dots</text>`;
       list.innerHTML = `<p class="small" style="margin:6px 0 8px"><b>Nearest by cosine</b> to <span class="mono">"${esc(qtext)}"</span></p><div class="results">${ranked.slice(0, 3).map((r, i) => `<div class="result"><div class="result-top"><span class="rank">${i + 1}</span><span class="small">${esc(r.text)}</span></div><div class="snippet" style="margin-bottom:0">cosine ${r.cos.toFixed(2)} · shared words with the query: <b>${r.shared}</b></div></div>`).join("")}</div>`;
+    }
+    render();
+  };
+
+  // Module 2: a hand-made 4-number "embedding" to show how vectors are compared
+  widgets.handembed = (body) => {
+    const DIMS = ["releases & rollback", "video playback", "billing & rights", "time & speed"];
+    const S = [
+      ["Roll back production when the canary error ratio stays above 2%.", [0.9, 0.2, 0, 0.1]],
+      ["`lumenctl release rollback playback --to previous`", [0.8, 0.5, 0, 0]],
+      ["The account has no entitlement for this title or region.", [0, 0.3, 0.9, 0]],
+      ["Streaming licenses last 2 hours.", [0, 0.5, 0.6, 0.4]],
+      ["Catalog requests use an 800 ms total deadline.", [0.1, 0.1, 0, 0.9]],
+      ["Acknowledge SEV1 pages within 5 minutes.", [0.2, 0, 0, 0.8]]];
+    const Q = [{ label: "How do I undo a bad release?", v: [0.9, 0.3, 0, 0] }, { label: "Why can't this customer watch a film they paid for?", v: [0, 0.6, 0.8, 0] }, { label: "How long should a catalog call wait?", v: [0, 0.1, 0, 1] }];
+    let qtext = Q[0].label;
+    body.innerHTML = `<p class="small muted" style="margin-top:0">Pretend an embedding model gave every sentence just 4 numbers, one per topic, each between 0 and 1. (Real models use hundreds, and nobody labels them. This is to see the arithmetic.)</p>`;
+    presets(body, "Query:", Q, (p) => { qtext = p.label; p.v.forEach((x, i) => { $(`[data-d="${i}"]`, body).value = x; }); render(); });
+    const ctl = document.createElement("div"); ctl.className = "controls";
+    ctl.innerHTML = DIMS.map((d, i) => `<label class="control"><span>${d} <output data-o="${i}"></output></span><input type="range" data-d="${i}" min="0" max="1" step="0.1" value="${Q[0].v[i]}"></label>`).join("");
+    body.appendChild(ctl);
+    const out = document.createElement("div"); body.appendChild(out);
+    $$("[data-d]", body).forEach((n) => n.addEventListener("input", () => { qtext = "(your own query vector)"; render(); }));
+    const f1 = (x) => x.toFixed(1), vec = (v) => `[${v.map(f1).join(", ")}]`;
+    function render() {
+      const q = $$("[data-d]", body).map((n) => +n.value);
+      q.forEach((x, i) => { $(`[data-o="${i}"]`, body).textContent = f1(x); });
+      const qterms = new Set(L.tokenize(qtext)), nq = Math.hypot(...q);
+      const rows = S.map(([text, v]) => { const d = v.reduce((s, x, i) => s + x * q[i], 0), n = Math.hypot(...v); return { text, v, d, n, cos: L.cosine(q, v), shared: L.tokenize(text).filter((t) => qterms.has(t)).length }; }).sort((a, b) => b.cos - a.cos);
+      const top = rows[0];
+      out.innerHTML = `<p class="small" style="margin:0 0 6px">Query <span class="mono">"${esc(qtext)}"</span> → vector <b class="mono">${vec(q)}</b> · length ${nq.toFixed(2)}</p>
+        <table><tr><th>#</th><th>Sentence</th><th>its vector</th><th>dot</th><th>length</th><th>cosine</th><th>shared words</th></tr>
+        ${rows.map((r, i) => `<tr style="${i === 0 ? "background:#f3fbf7" : ""}"><td class="mono">${i + 1}</td><td class="small">${esc(r.text)}</td><td class="mono small">${vec(r.v)}</td><td class="mono small">${r.d.toFixed(2)}</td><td class="mono small">${r.n.toFixed(2)}</td><td class="mono"><b>${r.cos.toFixed(2)}</b></td><td class="mono small">${r.shared}</td></tr>`).join("")}</table>
+        <div class="formula" style="white-space:normal;font-size:12.5px">
+        <b>How #1 got its score</b><br>
+        dot = ${q.map((x, i) => `${f1(x)}×${f1(top.v[i])}`).join(" + ")} = <b>${top.d.toFixed(2)}</b> <span class="muted">(multiply topic by topic, add up)</span><br>
+        |query| = √(${q.map((x) => `${f1(x)}²`).join(" + ")}) = ${nq.toFixed(2)} · |sentence| = √(${top.v.map((x) => `${f1(x)}²`).join(" + ")}) = ${top.n.toFixed(2)}<br>
+        cosine = dot / (|query| × |sentence|) = ${top.d.toFixed(2)} / (${nq.toFixed(2)} × ${top.n.toFixed(2)}) = <b>${top.cos.toFixed(2)}</b></div>
+        <p class="small muted">${nq === 0 ? "An all-zero query has no direction, so every cosine is 0." : top.shared === 0 ? "The best match shares <b>no words</b> with the query. It wins because its numbers are high on the same topics: that's what “similar meaning” means to a vector search." : "Move the sliders: a sentence ranks high when it's strong on the same topics the query is strong on."}</p>`;
+    }
+    render();
+  };
+
+  // Module 2: the two phases of vector search, one stage at a time
+  widgets.lifecycle = (body) => {
+    const ex = "Roll back production when the canary error ratio stays above 2%.", hv = [0.031, -0.112, 0.087, 0.004, -0.056];
+    const stages = [
+      { lane: "INDEXING · once, ahead of time", id: "chunk", name: "Split", sub: "documents → chunks", text: `Each document is cut into passages small enough to be about one thing (Module 3). For now, think of one chunk per document section, e.g. <span class="mono">playback-rollback-runbook#when-to-roll-back</span>: <q>${ex}</q>` },
+      { lane: "INDEXING · once, ahead of time", id: "embed", name: "Embed", sub: "text → 768 numbers", text: `Every chunk is sent to the embedding model, which returns one vector. For <code>nomic-embed-text</code> that's 768 numbers, e.g. <span class="mono">[${hv.join(", ")}, … 763 more]</span>. This is the slow, sometimes paid, step: 10,000 chunks means 10,000 embeddings (batched).` },
+      { lane: "INDEXING · once, ahead of time", id: "norm", name: "Normalize", sub: "scale to length 1", text: `Each vector is divided by its own length so it has length 1. Afterwards, the dot product of two vectors <em>is</em> their cosine, which saves a square root and two divisions on every comparison at query time.` },
+      { lane: "INDEXING · once, ahead of time", id: "store", name: "Store", sub: "vector + text + metadata", text: `Each record keeps the vector next to everything needed later: <span class="mono">{ id, vector, text, doc_id, heading, access: "all", status: "current" }</span>. The vector is only used to <em>find</em> the record; the text is what goes to the language model; the metadata is for filtering. This table of records, plus an index to search it fast, is what a vector database is.` },
+      { lane: "QUERY · every question", id: "qembed", name: "Embed the question", sub: "same model!", text: `The question goes through the <em>same</em> model and is normalized the same way. A vector from a different model lives in a different space: comparing them is meaningless even if both have 768 numbers.` },
+      { lane: "QUERY · every question", id: "compare", name: "Compare", sub: "dot with every record", text: `Exact search: compute the dot product of the question vector with every stored vector (skipping records the user may not see). 112 chunks × 768 numbers ≈ 86,000 multiply-adds: instant. 10 million chunks ≈ 7.7 billion per question: too slow, which is why vector databases build an approximate index (below).` },
+      { lane: "QUERY · every question", id: "topk", name: "Top k", sub: "highest scores", text: `Sort by score and keep the k best (typically 3–10). The scores themselves have no absolute meaning (0.62 isn't “62% relevant”), only their order matters, and they aren't comparable across models.` },
+      { lane: "QUERY · every question", id: "return", name: "Return text", sub: "→ the prompt", text: `Return the <em>text</em> and metadata of those k records, not the vectors. In Module 4 they become the sources in the prompt.` }];
+    let cur = 0;
+    body.innerHTML = `<div class="pipe" data-pipe></div><div class="stage-panel" data-panel></div>`;
+    const lanes = [...new Set(stages.map((s) => s.lane))];
+    $("[data-pipe]", body).innerHTML = lanes.map((ln) => `<div><p class="lane-label">${ln}</p><div class="lane">${stages.map((s, i) => s.lane === ln ? `<button type="button" class="stage" data-i="${i}"><span class="m">${i + 1}</span><b>${s.name}</b><small>${s.sub}</small></button>` : "").join("")}</div></div>`).join("");
+    $("[data-pipe]", body).addEventListener("click", (e) => { const b = e.target.closest("[data-i]"); if (b) { cur = +b.dataset.i; render(); } });
+    function render() {
+      $$("[data-i]", body).forEach((b) => b.setAttribute("aria-pressed", +b.dataset.i === cur));
+      const s = stages[cur];
+      $("[data-panel]", body).innerHTML = `<h4>${cur + 1}. ${s.name}</h4><p class="small" style="margin:0">${s.text}</p>`;
+    }
+    render();
+  };
+
+  // Module 2: approximate nearest-neighbour search as a greedy walk on a neighbour graph (the idea behind HNSW)
+  widgets.ann = (body) => {
+    let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const P = Array.from({ length: 90 }, () => [0.04 + 0.92 * rnd(), 0.04 + 0.92 * rnd()]);
+    const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+    let q = [0.82, 0.22];
+    body.innerHTML = `<div class="controls"><label class="control"><span>links per point (M) <output data-mo>3</output></span><input type="range" data-m min="1" max="10" value="3"></label><label class="control"><span>starting points <output data-eo>1</output></span><input type="range" data-e min="1" max="5" value="1"></label></div>
+      <div class="grid2" style="align-items:start"><svg class="svgbox" data-svg viewBox="0 0 1 1" style="max-width:400px;background:#fbfbfe;border:1px solid var(--line);border-radius:12px;cursor:crosshair"></svg><div><div class="metric-grid" data-met style="grid-template-columns:1fr 1fr"></div><div data-verdict></div><p class="small muted">Click anywhere to move the query (◆). Each dot is a stored vector; lines link each one to its nearest neighbours. The search starts at a fixed entry point and keeps hopping to whichever neighbour is closer to the query, stopping when no neighbour is closer.</p></div></div>`;
+    const svg = $("[data-svg]", body);
+    svg.addEventListener("click", (e) => { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const p = pt.matrixTransform(svg.getScreenCTM().inverse()); q = [p.x, p.y]; render(); });
+    $$("input", body).forEach((n) => n.addEventListener("input", render));
+    function render() {
+      const M = +$("[data-m]", body).value, E = +$("[data-e]", body).value;
+      $("[data-mo]", body).textContent = M; $("[data-eo]", body).textContent = E;
+      const nbr = P.map(() => new Set());
+      P.forEach((p, i) => P.map((o, j) => [j, dist(p, o)]).filter(([j]) => j !== i).sort((a, b) => a[1] - b[1]).slice(0, M).forEach(([j]) => { nbr[i].add(j); nbr[j].add(i); }));
+      const seen = new Set(), paths = [];
+      let best = -1, bestD = Infinity;
+      const entries = [0, 45, 17, 68, 30].slice(0, E);
+      for (const start of entries) {
+        let cur = start; seen.add(cur); const path = [cur];
+        for (;;) {
+          let next = cur, nd = dist(P[cur], q);
+          for (const j of nbr[cur]) { seen.add(j); const d = dist(P[j], q); if (d < nd) { nd = d; next = j; } }
+          if (next === cur) break;
+          cur = next; path.push(cur);
+        }
+        paths.push(path);
+        if (dist(P[cur], q) < bestD) { bestD = dist(P[cur], q); best = cur; }
+      }
+      const truth = P.map((p, i) => [i, dist(p, q)]).sort((a, b) => a[1] - b[1])[0][0];
+      const edges = []; nbr.forEach((s, i) => s.forEach((j) => { if (i < j) edges.push(`<line x1="${P[i][0]}" y1="${P[i][1]}" x2="${P[j][0]}" y2="${P[j][1]}" stroke="#e1dff0" stroke-width="0.003"/>`); }));
+      svg.innerHTML = edges.join("") +
+        paths.map((path) => `<polyline points="${path.map((i) => P[i].join(",")).join(" ")}" fill="none" stroke="#6960d6" stroke-width="0.008" stroke-linejoin="round"/>`).join("") +
+        P.map((p, i) => `<circle cx="${p[0]}" cy="${p[1]}" r="${i === truth || i === best ? 0.016 : 0.009}" fill="${i === truth ? "#2f8f83" : i === best ? "#b23b46" : seen.has(i) ? "#9e97e6" : "#c9c8d6"}"/>`).join("") +
+        entries.map((i) => `<circle cx="${P[i][0]}" cy="${P[i][1]}" r="0.022" fill="none" stroke="#6960d6" stroke-width="0.005"/>`).join("") +
+        `<rect x="${q[0] - 0.017}" y="${q[1] - 0.017}" width="0.034" height="0.034" fill="#d08a1f" transform="rotate(45 ${q[0]} ${q[1]})"/>`;
+      $("[data-met]", body).innerHTML = `<div class="metric"><b>${seen.size}</b><div>distances computed (graph walk)</div></div><div class="metric"><b>${P.length}</b><div>distances computed (exact search)</div></div>`;
+      $("[data-verdict]", body).innerHTML = best === truth ? `<div class="verdict ok">✓ <span>The walk found the true nearest point (green) after looking at ${Math.round((100 * seen.size) / P.length)}% of the points.</span></div>` :
+        `<div class="verdict no">✗ <span>The walk stopped at a point (red) where no neighbour was closer, but it isn't the true nearest (green). That's the “approximate” in ANN. More links or more starting points make this rarer, at the cost of more distance computations.</span></div>`;
     }
     render();
   };
